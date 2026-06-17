@@ -1,9 +1,9 @@
-local Remotes = {}
-
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local REMOTE_EVENTS = {
+local Remotes = {}
+
+local REMOTE_EVENT_NAMES = {
 	"Balloon_Start",
 	"Balloon_Stop",
 	"Balloon_Equip",
@@ -16,7 +16,7 @@ local REMOTE_EVENTS = {
 	"Notification",
 }
 
-local REMOTE_FUNCTIONS = {
+local REMOTE_FUNCTION_NAMES = {
 	"Shop_BuyBalloon",
 }
 
@@ -28,14 +28,14 @@ if RunService:IsServer() then
 		remotesFolder.Parent = ReplicatedStorage
 	end
 
-	for _, name in ipairs(REMOTE_EVENTS) do
+	for _, name in ipairs(REMOTE_EVENT_NAMES) do
 		local remote = Instance.new("RemoteEvent")
 		remote.Name = name
 		remote.Parent = remotesFolder
 		Remotes[name] = remote
 	end
 
-	for _, name in ipairs(REMOTE_FUNCTIONS) do
+	for _, name in ipairs(REMOTE_FUNCTION_NAMES) do
 		local remote = Instance.new("RemoteFunction")
 		remote.Name = name
 		remote.Parent = remotesFolder
@@ -44,11 +44,11 @@ if RunService:IsServer() then
 else
 	local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
 
-	for _, name in ipairs(REMOTE_EVENTS) do
+	for _, name in ipairs(REMOTE_EVENT_NAMES) do
 		Remotes[name] = remotesFolder:WaitForChild(name)
 	end
 
-	for _, name in ipairs(REMOTE_FUNCTIONS) do
+	for _, name in ipairs(REMOTE_FUNCTION_NAMES) do
 		Remotes[name] = remotesFolder:WaitForChild(name)
 	end
 end
