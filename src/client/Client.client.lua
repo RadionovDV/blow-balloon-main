@@ -7,10 +7,13 @@ local PlayerScripts = game:GetService("Players").LocalPlayer:WaitForChild("Playe
 local StatefulObjectController = require(PlayerScripts.Modules.StatefulObjectController)
 local AudioController          = require(PlayerScripts.Modules.AudioController)
 local HudController            = require(PlayerScripts.Modules.HudController)
+local BalloonController        = require(PlayerScripts.Modules.BalloonController)
 
 AudioController.Init()
 HudController.Init()
+BalloonController.Init()
 
 HudController.Start()
+BalloonController.Start()
 
 ReplicaClient.RequestData()
