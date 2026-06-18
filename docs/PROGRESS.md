@@ -1,2 +1,2 @@
 ### Завершённые сессии
-- SESSION_1 ✓ - Config, Shred, Remotes
+- SESSION_1 ✓ - Config, Utils, Remotes
