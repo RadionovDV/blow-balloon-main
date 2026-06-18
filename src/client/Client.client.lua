@@ -1,13 +1,16 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local ReplicaClient = require(ReplicatedStorage.Lib.ReplicaClient)
 
-ReplicaClient.OnNew("PlayerData", function(replica)
-	print("[Client] PlayerData received, Coins:", replica.Data.Coins)
+local StarterPlayerScripts = game:GetService("StarterPlayerScripts")
+local PlayerScripts = game:GetService("Players").LocalPlayer:WaitForChild("PlayerScripts")
 
-	replica:OnSet({"Coins"}, function(new, old)
-		print("[Client] Coins changed:", old, "->", new)
-	end)
-end)
+local StatefulObjectController = require(PlayerScripts.Modules.StatefulObjectController)
+local AudioController          = require(PlayerScripts.Modules.AudioController)
+local HudController            = require(PlayerScripts.Modules.HudController)
+
+AudioController.Init()
+HudController.Init()
+
+HudController.Start()
 
 ReplicaClient.RequestData()

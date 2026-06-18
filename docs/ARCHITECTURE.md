@@ -503,37 +503,20 @@ end
 ## StatefulObjectController — интерфейс
 
 ```lua
--- Модуль управления анимированными состояниями объекта через TweenService.
--- Твины создаются один раз при инициализации и переиспользуются,
--- что исключает конфликты и лишние аллокации.
+-- Модуль обёртки над TweenService
+-- Хранит активный Tween на объект, отменяет предыдущий при новом вызове
 
--- Создаёт контроллер и немедленно применяет initialStateName
-StatefulObjectController.hydrate(props: {
-    object: Instance,
-    states: {
-        [StateName]: {
-            transition: TweenInfo,
-            properties: { [string]: any },
-        }
-    },
-    initialStateName: StateName,
-}) → StatefulObjectController
-
--- Переходит в указанное состояние:
--- отменяет все активные твины объекта, запускает нужный
-controller:setState(stateName: StateName) → void
+StatefulObjectController.Tween(
+    instance: Instance,
+    properties: { [string]: any },
+    duration: number,
+    style: Enum.EasingStyle?,    -- default: Quad
+    direction: Enum.EasingDirection?  -- default: Out
+) → tween: Tween   -- можно вызвать :Cancel()
 
 -- Пример:
-local balloon = StatefulObjectController.hydrate({
-    object = balloonModel,
-    initialStateName = "normal",
-    states = {
-        normal  = { transition = TweenInfo.new(0.3), properties = { Size = normalSize } },
-        popped  = { transition = TweenInfo.new(0.2), properties = { Size = Vector3.zero } },
-    },
-})
-
-balloon:setState("popped")
+StatefulObjectController.Tween(balloonModel, { Size = targetSize }, 0.3)
+StatefulObjectController.Tween(frame, { BackgroundTransparency = 0 }, 0.2)
 ```
 
 ---
