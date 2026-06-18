@@ -7,6 +7,7 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PlayerService = require(ServerScriptService.Modules.PlayerService)
 local EconomyService = require(ServerScriptService.Modules.EconomyService)
 local RouletteService = require(ServerScriptService.Modules.RouletteService)
+local PetService = require(ServerScriptService.Modules.PetService)
 
 local BalloonService = {}
 
@@ -79,7 +80,9 @@ function BalloonService.Start()
 
 		if math.random(1, GameConfig.ROULETTE_CHANCE) == 1 then
 			local result = RouletteService.Roll(player, config.maxRarity, inflatePercent)
-			-- TODO: PetService.AddPet(player, result) when result.type == "pet"
+			if result.type == "pet" then
+				PetService.AddPet(player, result)
+			end
 			Remotes.Balloon_Result:FireClient(player, { type = "roulette", result = result, reward = reward })
 		else
 			Remotes.Balloon_Result:FireClient(player, { type = "coins_only", reward = reward })
