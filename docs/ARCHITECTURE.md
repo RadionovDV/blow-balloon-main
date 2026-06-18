@@ -268,10 +268,30 @@ ReplicaClient.RequestData()  -- вызвать один раз в Client.client
         → FireClient(Balloon_Result, { type="coins_only" })
 
 [CLIENT] BalloonController получает Balloon_Result
-    → type=="pop":      VFX лопания, сброс камеры, кнопка неактивна 1 сек
-    → type=="roulette": передать в RouletteController
-    → type=="coins_only": анимация монет, сброс камеры
+    → type=="pop":       switchPhase(Viewing), VFX лопания,
+                         1.5s auto → Ready (кнопка зелёная, камера на шаре)
+    → type=="roulette":  switchPhase(Viewing), RouletteController → Ready
+    → type=="coins_only":switchPhase(Viewing), 1.5s auto → Ready
+    → Камера НЕ сбрасывается — переходы Viewing/Ready не трогают CameraType
+    → Выход: ExitButton → switchPhase(Near) — CameraType = Custom, персонаж видим
 ```
+
+**Клиентская фазовая машина BalloonController:**
+```
+Idle → Near → Inflating → Viewing → Ready → Inflating
+  ↑        ↓                           ↑
+  └────────┴─── ExitButton → Near ←────┘
+```
+
+| Фаза | Камера | Персонаж | Старт | ExitButton |
+|---|---|---|---|---|
+| `Idle` | Custom | видим | HUD скрыт | скрыта |
+| `Near` | Custom | видим | зелёная | скрыта |
+| `Inflating` | Scriptable → шар | скрыт | тёмно-зелёная | видна |
+| `Viewing` | Scriptable → шар | скрыт | красная/неактивна | видна |
+| `Ready` | Scriptable → шар | скрыт | зелёная | видна |
+
+**Вход/выход со станции:** `StandPlatform.Touched/TouchEnded` (проверка HumanoidRootPart), вместо ProximityPrompt.
 
 ---
 
@@ -548,7 +568,7 @@ AudioController.Stop(id)                  -- остановить трек
 
 - [x] Balloon loop: надуть → деньги → (1/10) рулетка → питомец
 - [x] Лопание шара: VFX, сброс, новый шар через 1 сек
-- [x] Камера: фокус на шар, возврат после цикла
+- [x] Камера: фокус на шар, возврат только по ExitButton
 - [x] BillboardGUI деньги над шаром, ScreenGUI удача внизу
 - [x] Список шаров (HUD), кнопка Выйти
 - [x] ProfileStore: сохранение Coins, Balloons, Pets

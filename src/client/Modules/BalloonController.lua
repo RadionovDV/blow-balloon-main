@@ -13,19 +13,23 @@ local AudioController = require(script.Parent.AudioController)
 
 local BalloonController = {}
 
-local state = {
-	isInflating     = false,
-	isNearBalloon   = false,
-	startTime       = 0,
-	currentBalloon  = nil,
-	cameraReturning = false,
-	applauseTimer   = 0,
-	activeBalloon   = "Default",
-	ownedBalloons   = {},
+local Phase = {
+	Idle      = "idle",
+	Near      = "near",
+	Inflating = "inflating",
+	Viewing   = "viewing",
+	Ready     = "ready",
 }
+local phase = Phase.Idle
+
+local cachedActiveBalloon = "Default"
+local cachedOwnedBalloons = {}
 
 local inflateConnection = nil
 local inflateLoopId = nil
+local startTime = 0
+local applauseTimer = 0
+local readyDelay = nil
 
 local location = Workspace:WaitForChild("Location")
 local balloonStation = location:WaitForChild("BalloonStation")
@@ -43,7 +47,8 @@ local balloonListFrame = balloonHudGui:WaitForChild("BalloonListFrame")
 local balloonItemTemplate = balloonListFrame:WaitForChild("BalloonItemTemplate")
 local luckBarFrame = balloonHudGui:WaitForChild("LuckBarFrame")
 local luckLabel = luckBarFrame:WaitForChild("LuckLabel")
-local proximityAttach = balloonStation:WaitForChild("ProximityAttach")
+
+local standPlatform = balloonStation:WaitForChild("StandPlatform")
 
 local function resetBalloonSize()
 	balloonPart.Size = Vector3.new(1, 1, 1)
@@ -105,7 +110,7 @@ local function refreshBalloonList()
 		end
 	end
 
-	for balloonName, _ in pairs(state.ownedBalloons) do
+	for balloonName, _ in pairs(cachedOwnedBalloons) do
 		local item = balloonItemTemplate:Clone()
 		item.Name = balloonName
 		item.Visible = true
@@ -113,43 +118,29 @@ local function refreshBalloonList()
 		if config then
 			item:WaitForChild("NameLabel").Text = config.displayName
 		end
-		if balloonName == state.activeBalloon then
+		if balloonName == cachedActiveBalloon then
 			item.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
 		else
 			item.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 		end
 		item.SelectButton.MouseButton1Click:Connect(function()
-
 			Remotes.Balloon_Equip:FireServer(balloonName)
 		end)
 		item.Parent = balloonListFrame
 	end
 end
 
-local function showBalloonHud()
-	state.isNearBalloon = true
-	balloonHudGui.Enabled = true
-	refreshBalloonList()
-	setStartButtonState("idle")
-end
-
-local function hideBalloonHud()
-	if state.isInflating then return end
-	state.isNearBalloon = false
-	balloonHudGui.Enabled = false
-end
-
 local function startInflateLoop()
 	inflateConnection = RunService.Heartbeat:Connect(function(dt)
-		if not state.isInflating then
+		if phase ~= Phase.Inflating then
 			inflateConnection:Disconnect()
 			return
 		end
 
-		local elapsed = tick() - state.startTime
+		local elapsed = tick() - startTime
 		local t = math.clamp(elapsed / 60, 0, 1)
 
-		local config = BalloonConfig[state.activeBalloon]
+		local config = BalloonConfig[cachedActiveBalloon]
 		local previewReward = math.floor(config.baseReward + (config.maxReward - config.baseReward) * t)
 		rewardLabel.Text = "+" .. previewReward
 
@@ -164,122 +155,163 @@ local function startInflateLoop()
 
 		updateCameraFollow()
 
-		state.applauseTimer += dt
-		if state.applauseTimer >= GameConfig.APPLAUSE_INTERVAL then
-			state.applauseTimer = 0
+		applauseTimer += dt
+		if applauseTimer >= GameConfig.APPLAUSE_INTERVAL then
+			applauseTimer = 0
 			AudioController.Play(AudioController.Sounds.Applause)
 		end
 	end)
 end
 
-local function startInflating()
-	state.isInflating = true
-	state.startTime = tick()
-	state.applauseTimer = 0
-
-	setCharacterVisible(false)
-	focusCameraOnBalloon()
-
-	exitButton.Visible = true
-	setStartButtonState("active")
-
-	Remotes.Balloon_Start:FireServer()
-
-	startInflateLoop()
-
-	inflateLoopId = AudioController.PlayLoop(AudioController.Sounds.Inflate)
+local function autoReady()
+	if readyDelay then task.cancel(readyDelay) end
+	readyDelay = task.delay(1.5, function()
+		if phase == Phase.Viewing then
+			switchPhase(Phase.Ready)
+		end
+	end)
 end
 
-local function stopInflating()
-	if not state.isInflating then return end
-	state.isInflating = false
+local function switchPhase(target)
+	if phase == target then return end
 
-	AudioController.Stop(inflateLoopId)
+	if phase == Phase.Inflating then
+		AudioController.Stop(inflateLoopId)
+		if inflateConnection then
+			inflateConnection:Disconnect()
+			inflateConnection = nil
+		end
+	end
 
-	setStartButtonState("inactive")
-	exitButton.Visible = false
+	if target ~= Phase.Viewing then
+		if readyDelay then task.cancel(readyDelay); readyDelay = nil end
+	end
 
-	Remotes.Balloon_Stop:FireServer()
+	if target == Phase.Inflating then
+		startTime = tick()
+		applauseTimer = 0
+		focusCameraOnBalloon()
+		setCharacterVisible(false)
+		exitButton.Visible = true
+		setStartButtonState("active")
+		Remotes.Balloon_Start:FireServer()
+		startInflateLoop()
+		inflateLoopId = AudioController.PlayLoop(AudioController.Sounds.Inflate)
+
+	elseif target == Phase.Viewing then
+		resetBalloonSize()
+		rewardLabel.Text = ""
+		setStartButtonState("inactive")
+
+	elseif target == Phase.Ready then
+		setStartButtonState("idle")
+
+	elseif target == Phase.Near then
+		returnCamera()
+		setCharacterVisible(true)
+		exitButton.Visible = false
+		setStartButtonState("idle")
+		balloonHudGui.Enabled = true
+		refreshBalloonList()
+
+	elseif target == Phase.Idle then
+		returnCamera()
+		setCharacterVisible(true)
+		exitButton.Visible = false
+		balloonHudGui.Enabled = false
+	end
+
+	phase = target
 end
 
 function BalloonController.Init()
 	ReplicaClient.OnNew("PlayerData", function(replica)
-		state.activeBalloon = replica.Data.ActiveBalloon
-		state.ownedBalloons = replica.Data.Balloons
+		cachedActiveBalloon = replica.Data.ActiveBalloon
+		cachedOwnedBalloons = replica.Data.Balloons
 
 		replica:OnSet({"ActiveBalloon"}, function(new)
-			state.activeBalloon = new
-			refreshBalloonList()
+			cachedActiveBalloon = new
+			if phase == Phase.Near then
+				refreshBalloonList()
+			end
 		end)
 
 		replica:OnSet({"Balloons"}, function(new)
-			state.ownedBalloons = new
-			refreshBalloonList()
+			cachedOwnedBalloons = new
+			if phase == Phase.Near then
+				refreshBalloonList()
+			end
 		end)
 	end)
 
 	Remotes.Balloon_Result.OnClientEvent:Connect(function(result)
-		if result.type == "pop" then
-			AudioController.Play(AudioController.Sounds.Pop)
+		if phase ~= Phase.Inflating then return end
 
+		if result.type == "pop" then
+			switchPhase(Phase.Viewing)
+			AudioController.Play(AudioController.Sounds.Pop)
 			balloonModel.Parent = nil
 			task.wait(1)
 			balloonModel.Parent = balloonStation
-			resetBalloonSize()
-
-			returnCamera()
-			setCharacterVisible(true)
-			setStartButtonState("idle")
+			autoReady()
 
 		elseif result.type == "roulette" then
+			switchPhase(Phase.Viewing)
 			AudioController.Play(AudioController.Sounds.Coin)
-			returnCamera()
-			setCharacterVisible(true)
-			setStartButtonState("idle")
+			autoReady()
 
 		elseif result.type == "coins_only" then
+			switchPhase(Phase.Viewing)
 			AudioController.Play(AudioController.Sounds.Coin)
-			returnCamera()
-			setCharacterVisible(true)
-			setStartButtonState("idle")
+			autoReady()
 
 		elseif result.type == "no_balloon" then
-			setStartButtonState("idle")
+			switchPhase(Phase.Near)
 		end
-
-		resetBalloonSize()
 	end)
 
 	startButton.MouseButton1Down:Connect(function()
-		if state.isInflating or not state.isNearBalloon then return end
-		startInflating()
+		if phase ~= Phase.Near and phase ~= Phase.Ready then return end
+		switchPhase(Phase.Inflating)
 	end)
 
 	startButton.MouseButton1Up:Connect(function()
-		if not state.isInflating then return end
-		stopInflating()
+		if phase ~= Phase.Inflating then return end
+		Remotes.Balloon_Stop:FireServer()
 	end)
 
 	exitButton.MouseButton1Click:Connect(function()
-		if state.isInflating then
-			stopInflating()
+		if readyDelay then task.cancel(readyDelay); readyDelay = nil end
+		if phase == Phase.Inflating then
+			Remotes.Balloon_Stop:FireServer()
 		end
-		hideBalloonHud()
-		returnCamera()
-		setCharacterVisible(true)
+		if phase ~= Phase.Near and phase ~= Phase.Idle then
+			switchPhase(Phase.Near)
+		end
 	end)
 
-	local proximityPrompt = proximityAttach:FindFirstChildWhichIsA("ProximityPrompt")
-	if proximityPrompt then
-		proximityPrompt.Triggered:Connect(function()
-			showBalloonHud()
-		end)
-	end
+	standPlatform.Touched:Connect(function(hit)
+		local character = Players.LocalPlayer.Character
+		if not character then return end
+		if hit ~= character:FindFirstChild("HumanoidRootPart") then return end
+		if phase == Phase.Idle then
+			switchPhase(Phase.Near)
+		end
+	end)
+
+	standPlatform.TouchEnded:Connect(function(hit)
+		local character = Players.LocalPlayer.Character
+		if not character then return end
+		if hit ~= character:FindFirstChild("HumanoidRootPart") then return end
+		if phase == Phase.Near or phase == Phase.Ready then
+			switchPhase(Phase.Idle)
+		end
+	end)
 end
 
 function BalloonController.Start()
-	location:WaitForChild("BalloonStation")
 	resetBalloonSize()
+	balloonHudGui.Enabled = false
 end
 
 return BalloonController
