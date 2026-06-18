@@ -27,12 +27,14 @@ local state = {
 local inflateConnection = nil
 local inflateLoopId = nil
 
-local balloonStation = Workspace:WaitForChild("BalloonStation")
+local location = Workspace:WaitForChild("Location")
+local balloonStation = location:WaitForChild("BalloonStation")
 local balloonModel = balloonStation:WaitForChild("BalloonModel")
 local balloonPart = balloonModel:WaitForChild("BalloonPart")
-local billboardGui = balloonStation:WaitForChild("BillboardGui")
-local rewardLabel = billboardGui:WaitForChild("RewardLabel")
 local balloonBasePosition = balloonPart.Position
+
+local billboardGui = PlayerGui:WaitForChild("BillboardGui")
+local rewardLabel = billboardGui:WaitForChild("RewardLabel")
 
 local balloonHudGui = PlayerGui:WaitForChild("BalloonHudGui")
 local startButton = balloonHudGui:WaitForChild("StartButton")
@@ -41,6 +43,7 @@ local balloonListFrame = balloonHudGui:WaitForChild("BalloonListFrame")
 local balloonItemTemplate = balloonListFrame:WaitForChild("BalloonItemTemplate")
 local luckBarFrame = balloonHudGui:WaitForChild("LuckBarFrame")
 local luckLabel = luckBarFrame:WaitForChild("LuckLabel")
+local proximityAttach = balloonStation:WaitForChild("ProximityAttach")
 
 local function resetBalloonSize()
 	balloonPart.Size = Vector3.new(1, 1, 1)
@@ -115,7 +118,8 @@ local function refreshBalloonList()
 		else
 			item.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 		end
-		item.MouseButton1Click:Connect(function()
+		item.SelectButton.MouseButton1Click:Connect(function()
+
 			Remotes.Balloon_Equip:FireServer(balloonName)
 		end)
 		item.Parent = balloonListFrame
@@ -265,7 +269,7 @@ function BalloonController.Init()
 		setCharacterVisible(true)
 	end)
 
-	local proximityPrompt = balloonStation:FindFirstChildWhichIsA("ProximityPrompt")
+	local proximityPrompt = proximityAttach:FindFirstChildWhichIsA("ProximityPrompt")
 	if proximityPrompt then
 		proximityPrompt.Triggered:Connect(function()
 			showBalloonHud()
@@ -274,7 +278,7 @@ function BalloonController.Init()
 end
 
 function BalloonController.Start()
-	Workspace:WaitForChild("BalloonStation")
+	location:WaitForChild("BalloonStation")
 	resetBalloonSize()
 end
 
