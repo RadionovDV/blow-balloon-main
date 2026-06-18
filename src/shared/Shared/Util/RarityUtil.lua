@@ -57,4 +57,35 @@ function RarityUtil.WeightedPick(candidates, luck)
 	return candidates[#candidates]
 end
 
+function RarityUtil.WeightedPickFromAll(list, luck)
+	local totalWeight = 0
+	local adjusted = {}
+
+	for i = #list, 1, -1 do
+		local entry = list[i]
+		local pet = entry.pet
+		local rarityIndex = 0
+		for j, rarity in ipairs(PetConfig.RARITIES) do
+			if rarity == pet.rarity then
+				rarityIndex = j
+				break
+			end
+		end
+		local weight = pet.rarityWeight * (1 + luck * rarityIndex * 0.1)
+		table.insert(adjusted, { entry = entry, weight = weight })
+		totalWeight = totalWeight + weight
+	end
+
+	local roll = math.random() * totalWeight
+	local cumulative = 0
+	for _, item in ipairs(adjusted) do
+		cumulative = cumulative + item.weight
+		if roll <= cumulative then
+			return item.entry
+		end
+	end
+
+	return list[#list]
+end
+
 return RarityUtil
