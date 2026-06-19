@@ -1,5 +1,7 @@
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local ReplicaClient = require(ReplicatedStorage.Lib.ReplicaClient)
 local PetConfig = require(ReplicatedStorage.Shared.Config.PetConfig)
@@ -14,12 +16,16 @@ local balloonStation = location:WaitForChild("BalloonStation")
 local basesFolder = location:WaitForChild("Bases")
 local petsFolder = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("Pets")
 local billboardTemplate = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("UI"):WaitForChild("PetBillboardGui")
+local incomeBillboardTemplate = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("UI"):WaitForChild("IncomeBillboardGui")
 
 local spawnedStandModels = {}
 local activePetSpawns = {}
 local assignedBaseId = nil
 local cachedBaseSlots = 10
 local cachedStandPets = {}
+
+local incomeBillboards = {}
+local displayTotal = {}
 
 local function findPrimaryPart(model)
 	for _, descendant in ipairs(model:GetDescendants()) do
@@ -119,6 +125,11 @@ function PetController.RefreshStands(standPets)
 		model:Destroy()
 		spawnedStandModels[slotKey] = nil
 	end
+	for slotKey, billboard in pairs(incomeBillboards) do
+		billboard:Destroy()
+		incomeBillboards[slotKey] = nil
+	end
+	table.clear(displayTotal)
 
 	local baseModel = basesFolder:FindFirstChild("Base" .. tostring(assignedBaseId))
 	if not baseModel then
@@ -149,6 +160,33 @@ function PetController.RefreshStands(standPets)
 		end
 
 		spawnedStandModels[slotIndex] = petModel
+
+		local claimButton = standSlot:FindFirstChild("ClaimButton")
+		if not claimButton then continue end
+
+		local billboard = incomeBillboardTemplate:Clone()
+		billboard.Adornee = claimButton
+		billboard.Parent = claimButton
+		billboard.Frame.AmmountLabel.Text = "0"
+		incomeBillboards[tostring(slotIndex)] = billboard
+
+		claimButton.Touched:Connect(function(hit)
+			local character = Players.LocalPlayer.Character
+			if not character then return end
+			if hit ~= character:FindFirstChild("HumanoidRootPart") then return end
+
+			task.spawn(function()
+				local earned = Remotes.Base_Collect:InvokeServer(slotIndex)
+				if earned > 0 then
+					local key = tostring(slotIndex)
+					displayTotal[key] = 0
+					local b = incomeBillboards[key]
+					if b then
+						b.Frame.AmmountLabel.Text = "0"
+					end
+				end
+			end)
+		end)
 	end
 end
 
@@ -165,6 +203,11 @@ function PetController.Init()
 
 		replica:OnSet({"StandPets"}, function(new)
 			cachedStandPets = new
+			for _, billboard in pairs(incomeBillboards) do
+				billboard:Destroy()
+			end
+			table.clear(incomeBillboards)
+			table.clear(displayTotal)
 			PetController.RefreshStands(new)
 		end)
 
@@ -175,6 +218,21 @@ function PetController.Init()
 end
 
 function PetController.Start()
+	RunService.Heartbeat:Connect(function(dt)
+		local interval = GameConfig.STAND_INCOME_INTERVAL
+		for slotKey, billboard in pairs(incomeBillboards) do
+			local petEntry = cachedStandPets[slotKey]
+			if not petEntry then continue end
+			local petConfig = getPetConfigByName(petEntry.name, petEntry.collectionName)
+			if not petConfig then continue end
+			displayTotal[slotKey] = (displayTotal[slotKey] or 0) + petConfig.standIncome * dt
+			if displayTotal[slotKey] >= interval then
+				local label = billboard.Frame.AmmountLabel
+				label.Text = tostring(math.floor(displayTotal[slotKey]))
+				displayTotal[slotKey] = 0
+			end
+		end
+	end)
 end
 
 return PetController

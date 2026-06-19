@@ -30,8 +30,11 @@ StarterGui
                 ├── BalloonRarityLabel (TextLabel)
                 └── BuyButton (TextButton)
 
-workspace
-└── ShopProximityPart (Part) -- наступить → открыть магазин
+StarterGui
+└── HudGui (ScreenGui)
+    └── RightSide (Frame)
+        └── ShopButton (ImageButton)
+
 
 StarterGui
 └── TutorialGui (ScreenGui, ResetOnSpawn=false)

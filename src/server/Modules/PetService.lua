@@ -1,5 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
 local PetConfig = require(ReplicatedStorage.Shared.Config.PetConfig)
 local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
@@ -8,6 +10,8 @@ local PlayerService = require(ServerScriptService.Modules.PlayerService)
 local EconomyService = require(ServerScriptService.Modules.EconomyService)
 
 local PetService = {}
+
+local pendingIncome = {}
 
 function PetService.Init()
 end
@@ -21,13 +25,43 @@ function PetService.Start()
 		PetService.RemoveFromStand(player, slotIndex)
 	end)
 
-	Remotes.Base_Collect.OnServerEvent:Connect(function(player)
-		local earned = PetService.CollectIncome(player)
-		if earned > 0 then
-			Remotes.Notification:FireClient(player, {
-				text = "+" .. earned .. " монет со стендов!",
-				style = "income"
-			})
+	Remotes.Base_Collect.OnServerInvoke = function(player, slotIndex)
+		local data = PlayerService.GetData(player)
+		if not data then return 0 end
+
+		local key = tostring(slotIndex)
+		if not data.StandPets[key] then return 0 end
+
+		local slotPending = pendingIncome[player] and pendingIncome[player][key] or 0
+		if slotPending < 1 then return 0 end
+
+		local floorAmount = math.floor(slotPending)
+		pendingIncome[player] = pendingIncome[player] or {}
+		pendingIncome[player][key] = slotPending - floorAmount
+
+		EconomyService.AddCoins(player, floorAmount)
+		return floorAmount
+	end
+
+	Players.PlayerRemoving:Connect(function(player)
+		pendingIncome[player] = nil
+	end)
+
+	local lastTick = tick()
+	RunService.Heartbeat:Connect(function()
+		local now = tick()
+		local dt = now - lastTick
+		lastTick = now
+
+		for _, player in ipairs(Players:GetPlayers()) do
+			local data = PlayerService.GetData(player)
+			if not data then continue end
+			for slotIndex, petEntry in pairs(data.StandPets) do
+				local petConfig = findPetConfig(petEntry.name, petEntry.collectionName)
+				if not petConfig then continue end
+				pendingIncome[player] = pendingIncome[player] or {}
+				pendingIncome[player][slotIndex] = (pendingIncome[player][slotIndex] or 0) + petConfig.standIncome * dt
+			end
 		end
 	end)
 end
@@ -139,27 +173,6 @@ function PetService.SellPet(player, petUid)
 	end
 
 	return false
-end
-
-function PetService.CollectIncome(player)
-	local data = PlayerService.GetData(player)
-	if not data then
-		return 0
-	end
-
-	local total = 0
-	for slotIndex, petEntry in pairs(data.StandPets) do
-		local petConfig = findPetConfig(petEntry.name, petEntry.collectionName)
-		if petConfig then
-			total = total + petConfig.standIncome
-		end
-	end
-
-	if total > 0 then
-		EconomyService.AddCoins(player, total)
-	end
-
-	return total
 end
 
 function PetService.UpgradeBase(player)

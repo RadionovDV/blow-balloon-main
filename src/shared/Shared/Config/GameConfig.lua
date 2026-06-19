@@ -6,7 +6,7 @@ GameConfig.KEY_CHANCE = 0.01
 GameConfig.BOMB_CHANCE = 0.10
 GameConfig.KEY_CHANCE_MAX_INFLATE = 0.05
 
-GameConfig.STAND_INCOME_INTERVAL = 60
+GameConfig.STAND_INCOME_INTERVAL = 1
 GameConfig.BASE_SLOTS_PER_FLOOR = 10
 GameConfig.BASE_UPGRADE_KEY_COST = 1
 GameConfig.BASE_COUNT = 1 -- default = 8

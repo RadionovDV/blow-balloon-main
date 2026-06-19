@@ -242,22 +242,19 @@ ReplicaClient.RequestData()  -- вызвать один раз в Client.client
 
 {
     -- Client → Server
-    Balloon_Start   : RemoteEvent    -- игрок начал надувать
-    Balloon_Stop    : RemoteEvent    -- игрок отпустил (успешно)
-    Balloon_Equip   : RemoteEvent    -- выбрал шар из списка
-    Base_Collect    : RemoteEvent    -- наступил на кнопку сбора дохода
-    Pet_PlaceStand  : RemoteEvent    -- поставить питомца на стенд
-    Pet_RemoveStand : RemoteEvent    -- убрать питомца со стенда
-    Shop_BuyBalloon : RemoteFunction -- купить шар (нужен ответ success/fail)
+    Balloon_Start   : RemoteEvent       -- игрок начал надувать
+    Balloon_Stop    : RemoteEvent       -- игрок отпустил (успешно)
+    Balloon_Equip   : RemoteEvent       -- выбрал шар из списка
+    Pet_PlaceStand  : RemoteEvent       -- поставить питомца на стенд
+    Pet_RemoveStand : RemoteEvent       -- убрать питомца со стенда
+    Shop_BuyBalloon : RemoteFunction    -- купить шар (нужен ответ success/fail)
+    Base_Collect    : RemoteFunction    -- собрать доход с питомца { slotIndex } → earned
 
     -- Server → Client (one-shot события, не состояние)
     Balloon_Result  : RemoteEvent    -- результат цикла { type, petData, reward }
     Base_Assigned   : RemoteEvent    -- назначен ID базы { baseId }
     Tutorial_Step   : RemoteEvent    -- переключить шаг туториала
     Notification    : RemoteEvent    -- показать нотификацию { text, style }
-
-    -- Server → Client (deprecated — RouletteController слушает Balloon_Result)
-    -- Roulette_Show  : RemoteEvent
 }
 ```
 
@@ -503,7 +500,7 @@ end
     KEY_CHANCE_MAX_INFLATE = 0.05,   -- 5% при 100% надуве
 
     -- Стенды
-    STAND_INCOME_INTERVAL = 60,      -- сек между начислениями дохода
+    STAND_INCOME_INTERVAL = 1,       -- секунд между сбросом Billboard-счётчика (standIncome = монет/сек)
     BASE_SLOTS_PER_FLOOR  = 10,
     BASE_UPGRADE_KEY_COST = 1,       -- ключей за 1 слот
 
@@ -661,7 +658,7 @@ RouletteFrame (Frame)
 
 ## PetController — интерфейс
 
-Клиентский модуль визуального отображения питомцев. Слушает `Base_Assigned` и Replica `StandPets`.
+Клиентский модуль визуального отображения питомцев и пассивного дохода. Слушает `Base_Assigned` и Replica `StandPets`.
 
 ```lua
 PetController.Init()
@@ -670,7 +667,7 @@ PetController.Start()
 -- Спавн питомца у шара + вызов Pet_PlaceStand
 PetController.SpawnAndRun(petResult: RouletteResult)
 
--- Обновить модели на стендах
+-- Обновить модели на стендах + IncomeBillboardGui + Touch-триггеры
 PetController.RefreshStands(standPets: table)
 ```
 
@@ -692,8 +689,35 @@ Frame
 ```
 
 **RefreshStands:**
-- Очистить старые модели (`spawnedStandModels`)
-- Для каждого занятого слота в `StandPets`: клонировать модель из `ReplicatedStorage.Assets.Pets[petEntry.name]` на `Base{baseId}/BaseArea/StandSlot_N`
+- Очистить старые модели (`spawnedStandModels`) и IncomeBillboardGui (`incomeBillboards`)
+- Для каждого занятого слота в `StandPets`:
+  1. Клонировать модель из `ReplicatedStorage.Assets.Pets[petEntry.name]` на `Base{baseId}/BaseArea/StandSlot_N`
+  2. Клонировать `IncomeBillboardGui` из `ReplicatedStorage.Assets.UI`, указать `Adornee = ClaimButton`, Parent = `ClaimButton`
+  3. Навесить `ClaimButton.Touched`:
+     - Проверка `hit == character.HumanoidRootPart`
+     - `Base_Collect:InvokeServer(slotIndex)` — RemoteFunction, возвращает `earned`
+     - При успехе: сбросить локальный счётчик и текст билборда в "0"
+
+**Start (Heartbeat-луп):**
+```lua
+RunService.Heartbeat:Connect(function(dt)
+    for slotKey, billboard in pairs(incomeBillboards) do
+        displayTotal[slotKey] += standIncome * dt
+        if displayTotal[slotKey] >= STAND_INCOME_INTERVAL then
+            billboard.Frame.AmmountLabel.Text = tostring(math.floor(displayTotal[slotKey]))
+            displayTotal[slotKey] = 0
+        end
+    end
+end)
+```
+Каждый кадр накапливает `standIncome * dt`. Раз в секунду обновляет `AmmountLabel` и сбрасывает счётчик.
+
+**Структура IncomeBillboardGui (ReplicatedStorage.Assets.UI):**
+```
+IncomeBillboardGui (BillboardGui)
+└── Frame (Frame)
+    └── AmmountLabel (TextLabel)
+```
 
 ---
 
@@ -725,7 +749,11 @@ Workspace
     └── Bases
         ├── Base1 (Model)
         │   ├── BaseArea (Model)
-        │   │   ├── StandSlot_1 (Part) ... StandSlot_10 (Part)
+        │   │   ├── StandSlot_1 (Model)     ← кнопка сбора под питомцем
+        │   │   │   └── ClaimButton (Part)  ← Touch-триггер + Adornee
+        │   │   ├── StandSlot_2 (Model)
+        │   │   │   └── ClaimButton (Part)
+        │   │   └── ...
         │   └── OwnerSign (Model)
         │       └── Sign2 (Part)
         │           └── Background (Part)
@@ -736,6 +764,48 @@ Workspace
         ...
         └── Base8 (Model)  -- такая же структура
 ```
+
+---
+
+## PetService — серверный модуль
+
+Управление инвентарём питомцев, стендами и пассивным доходом.
+
+```lua
+PetService.Init()
+PetService.Start()
+
+PetService.AddPet(player, petResult)          → entry
+PetService.PlaceOnStand(player, petUid, slot) → bool
+PetService.RemoveFromStand(player, slot)      → bool
+PetService.SellPet(player, petUid)            → bool
+PetService.UpgradeBase(player)                → bool
+```
+
+**Start (Heartbeat-луп):**
+```lua
+local pendingIncome = {}  -- in-memory: { [player] = { [slotIndex] = amount } }
+
+RunService.Heartbeat:Connect(function()
+    for _, player in ipairs(Players:GetPlayers()) do
+        for slotIndex, petEntry in pairs(data.StandPets) do
+            pendingIncome[player][slotIndex] += petConfig.standIncome * dt
+        end
+    end
+end)
+```
+Единый heartbeat на всех игроков. Накопление `standIncome * dt` в `pendingIncome`. Не сохраняется в ProfileStore — при выходе теряется.
+
+**Base_Collect (RemoteFunction, Client → Server):**
+```lua
+Remotes.Base_Collect.OnServerInvoke = function(player, slotIndex)
+    floorAmount = math.floor(pendingIncome[player][slotIndex])
+    pendingIncome[player][slotIndex] -= floorAmount   -- остаток сохраняется
+    EconomyService.AddCoins(player, floorAmount)
+    return floorAmount
+end
+```
+Возвращает `earned` (0, если < 1 монеты). Клиент сбрасывает локальный счётчик после успеха. Без anti-spam, без Notification.
 
 ---
 

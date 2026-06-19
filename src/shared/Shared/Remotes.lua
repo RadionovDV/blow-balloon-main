@@ -7,7 +7,6 @@ local REMOTE_EVENT_NAMES = {
 	"Balloon_Start",
 	"Balloon_Stop",
 	"Balloon_Equip",
-	"Base_Collect",
 	"Pet_PlaceStand",
 	"Pet_RemoveStand",
 	"Balloon_Result",
@@ -19,6 +18,7 @@ local REMOTE_EVENT_NAMES = {
 
 local REMOTE_FUNCTION_NAMES = {
 	"Shop_BuyBalloon",
+	"Base_Collect",
 }
 
 if RunService:IsServer() then
