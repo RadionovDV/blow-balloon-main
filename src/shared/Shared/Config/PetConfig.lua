@@ -3,11 +3,11 @@ local PetConfig = {}
 PetConfig.RARITIES = { "Common", "Uncommon", "Rare", "Epic", "Legendary" }
 
 PetConfig.Base = {
-	{ name = "FluffyCat",   rarity = "Common",   rarityWeight = 100, cost = 0, standIncome = 5   },
-	{ name = "WoofyDog",    rarity = "Uncommon", rarityWeight = 50,  cost = 0, standIncome = 12  },
-	{ name = "CoolBunny",   rarity = "Rare",     rarityWeight = 20,  cost = 0, standIncome = 30  },
-	{ name = "MysticFox",   rarity = "Epic",     rarityWeight = 5,   cost = 0, standIncome = 80  },
-	{ name = "GoldenDrake", rarity = "Legendary",rarityWeight = 1,   cost = 0, standIncome = 250 },
+	{ name = "Bluer",   rarity = "Common",   rarityWeight = 100, cost = 20, standIncome = 5   },
+	{ name = "Forgot",    rarity = "Uncommon", rarityWeight = 50,  cost = 30, standIncome = 12  },
+	{ name = "Blue Beast",   rarity = "Rare",     rarityWeight = 20,  cost = 50, standIncome = 30  },
+	{ name = "Orange Bull",   rarity = "Epic",     rarityWeight = 5,   cost = 150, standIncome = 80  },
+	{ name = "Dragon King", rarity = "Legendary", rarityWeight = 1,   cost = 300, standIncome = 250 },
 }
 
 return PetConfig

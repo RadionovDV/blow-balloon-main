@@ -133,6 +133,23 @@ local Remotes       = require(ReplicatedStorage.Shared.Remotes)
 
 ---
 
+## WaitForChild конвенция
+
+Все вызовы `WaitForChild` для элементов из `Workspace` или `PlayerGui` должны быть на верхнем уровне модуля, а не внутри функций или колбеков. Это гарантирует, что структура объектов валидна с момента загрузки, а ошибки отсутствия элемента проявляются сразу, а не в рантайме.
+
+```lua
+-- ✅ Правильно: на верхнем уровне
+local location = Workspace:WaitForChild("Location")
+local balloonStation = location:WaitForChild("BalloonStation")
+
+-- ❌ Неправильно: внутри Init/Start или колбека
+function SomeController.Init()
+    local balloonStation = Workspace:WaitForChild("Location"):WaitForChild("BalloonStation")
+end
+```
+
+---
+
 ## ProfileStore — схема данных (ProfileTemplate)
 
 ```lua

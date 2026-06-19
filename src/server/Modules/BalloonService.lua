@@ -81,7 +81,10 @@ function BalloonService.Start()
 		if math.random(1, GameConfig.ROULETTE_CHANCE) == 1 then
 			local result = RouletteService.Roll(player, config.maxRarity, inflatePercent)
 			if result.type == "pet" then
-				PetService.AddPet(player, result)
+				local entry = PetService.AddPet(player, result)
+				if entry then
+					result.uid = entry.uid
+				end
 			end
 			Remotes.Balloon_Result:FireClient(player, { type = "roulette", result = result, reward = reward })
 		else

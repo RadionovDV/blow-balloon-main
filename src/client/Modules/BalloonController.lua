@@ -19,6 +19,7 @@ local Phase = {
 	Inflating = "inflating",
 	Viewing   = "viewing",
 	Ready     = "ready",
+	Roulette  = "roulette",
 }
 local phase = Phase.Idle
 
@@ -163,15 +164,6 @@ local function startInflateLoop()
 	end)
 end
 
-local function autoReady()
-	if readyDelay then task.cancel(readyDelay) end
-	readyDelay = task.delay(1.5, function()
-		if phase == Phase.Viewing then
-			switchPhase(Phase.Ready)
-		end
-	end)
-end
-
 local function switchPhase(target)
 	if phase == target then return end
 
@@ -184,7 +176,7 @@ local function switchPhase(target)
 	end
 
 	if target ~= Phase.Viewing then
-		if readyDelay then task.cancel(readyDelay); readyDelay = nil end
+		if readyDelay then coroutine.resume(readyDelay); readyDelay = nil end
 	end
 
 	if target == Phase.Inflating then
@@ -202,9 +194,17 @@ local function switchPhase(target)
 		resetBalloonSize()
 		rewardLabel.Text = ""
 		setStartButtonState("inactive")
+		exitButton.Visible = true
 
 	elseif target == Phase.Ready then
 		setStartButtonState("idle")
+
+	elseif target == Phase.Roulette then
+		resetBalloonSize()
+		rewardLabel.Text = ""
+		balloonModel.Parent = nil
+		setStartButtonState("inactive")
+		exitButton.Visible = false
 
 	elseif target == Phase.Near then
 		returnCamera()
@@ -222,6 +222,15 @@ local function switchPhase(target)
 	end
 
 	phase = target
+end
+
+local function autoReady()
+	if readyDelay then task.cancel(readyDelay) end
+	readyDelay = task.delay(1.5, function()
+		if phase == Phase.Viewing then
+			switchPhase(Phase.Ready)
+		end
+	end)
 end
 
 function BalloonController.Init()
@@ -256,9 +265,7 @@ function BalloonController.Init()
 			autoReady()
 
 		elseif result.type == "roulette" then
-			switchPhase(Phase.Viewing)
-			AudioController.Play(AudioController.Sounds.Coin)
-			autoReady()
+			switchPhase(Phase.Roulette)
 
 		elseif result.type == "coins_only" then
 			switchPhase(Phase.Viewing)
@@ -312,6 +319,12 @@ end
 function BalloonController.Start()
 	resetBalloonSize()
 	balloonHudGui.Enabled = false
+end
+
+function BalloonController.ReturnFromRoulette()
+	if phase ~= Phase.Roulette then return end
+	balloonModel.Parent = balloonStation
+	switchPhase(Phase.Viewing)
 end
 
 return BalloonController

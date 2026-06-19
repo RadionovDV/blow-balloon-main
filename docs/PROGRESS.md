@@ -5,6 +5,8 @@
 - SESSION_4 ✓ - PetService (серверная часть: инвентарь, стенды, доход)
 - SESSION_5 ✓ - Client Infrastructure: StatefulObjectController, AudioController, HudController
 - SESSION_6 ✓ - BalloonController (клиент): камера, анимация, HUD шара
+- SESSION_7 ✓ - RouletteController + PetController (клиент), BaseService, рарные цвета в GameConfig
 
 ### Отколонения от плана
-- BalloonController: добавлена фазовая машина (Idle/Near/Inflating/Viewing/Ready), камера не сбрасывается после цикла — только по ExitButton; ProximityPrompt заменён на StandPlatform.Touched/TouchEnded
+- RouletteController: слушает Balloon_Result вместо отдельного Roulette_Show (избыточный RemoteEvent)
+- BaseService: добавлен как новый модуль (не описан в архитектуре)

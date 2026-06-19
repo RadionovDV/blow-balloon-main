@@ -8,12 +8,18 @@ local StatefulObjectController = require(PlayerScripts.Modules.StatefulObjectCon
 local AudioController          = require(PlayerScripts.Modules.AudioController)
 local HudController            = require(PlayerScripts.Modules.HudController)
 local BalloonController        = require(PlayerScripts.Modules.BalloonController)
+local RouletteController       = require(PlayerScripts.Modules.RouletteController)
+local PetController            = require(PlayerScripts.Modules.PetController)
 
 AudioController.Init()
 HudController.Init()
 BalloonController.Init()
+RouletteController.Init()
+PetController.Init()
 
 HudController.Start()
 BalloonController.Start()
+RouletteController.Start()
+PetController.Start()
 
 ReplicaClient.RequestData()

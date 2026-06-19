@@ -14,6 +14,7 @@ local REMOTE_EVENT_NAMES = {
 	"Roulette_Show",
 	"Tutorial_Step",
 	"Notification",
+	"Base_Assigned",
 }
 
 local REMOTE_FUNCTION_NAMES = {

@@ -1,6 +1,6 @@
 local GameConfig = {}
 
-GameConfig.ROULETTE_CHANCE = 10
+GameConfig.ROULETTE_CHANCE = 1 -- default = 10
 
 GameConfig.KEY_CHANCE = 0.01
 GameConfig.BOMB_CHANCE = 0.10
@@ -9,6 +9,7 @@ GameConfig.KEY_CHANCE_MAX_INFLATE = 0.05
 GameConfig.STAND_INCOME_INTERVAL = 60
 GameConfig.BASE_SLOTS_PER_FLOOR = 10
 GameConfig.BASE_UPGRADE_KEY_COST = 1
+GameConfig.BASE_COUNT = 1 -- default = 8
 
 GameConfig.REBIRTH_COIN_REQUIREMENT = 100000
 GameConfig.REBIRTH_LUCK_MULTIPLIER = 0.5
@@ -43,5 +44,17 @@ GameConfig.TUTORIAL_STEPS = {
 }
 
 GameConfig.APPLAUSE_INTERVAL = 10
+
+GameConfig.RARITY_COLORS = {
+	Common    = Color3.fromRGB(180, 180, 180),
+	Uncommon  = Color3.fromRGB(100, 200, 100),
+	Rare      = Color3.fromRGB(100, 150, 255),
+	Epic      = Color3.fromRGB(180, 100, 255),
+	Legendary = Color3.fromRGB(255, 180, 50),
+}
+
+function GameConfig.GetRarityColor(rarity)
+	return GameConfig.RARITY_COLORS[rarity] or Color3.fromRGB(255, 255, 255)
+end
 
 return GameConfig
