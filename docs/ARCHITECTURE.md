@@ -53,6 +53,7 @@ ServerScriptService
     ├── PetService             (ModuleScript)
     ├── EconomyService         (ModuleScript)
     ├── LuckService            (ModuleScript)
+    ├── BaseService            (ModuleScript)
     └── RebirthService         (ModuleScript)  ← POST-MVP
 
 StarterPlayerScripts
@@ -183,6 +184,9 @@ local ProfileTemplate = {
 
     -- Туториал
     TutorialStep = 0,    -- 0 = не начат, -1 = завершён
+
+    -- GamePass (in-memory на сессию, не сохраняется)
+    GamePasses  = {},
 }
 ```
 
@@ -248,9 +252,12 @@ ReplicaClient.RequestData()  -- вызвать один раз в Client.client
 
     -- Server → Client (one-shot события, не состояние)
     Balloon_Result  : RemoteEvent    -- результат цикла { type, petData, reward }
-    Roulette_Show   : RemoteEvent    -- запустить анимацию рулетки { sequence, result }
+    Base_Assigned   : RemoteEvent    -- назначен ID базы { baseId }
     Tutorial_Step   : RemoteEvent    -- переключить шаг туториала
     Notification    : RemoteEvent    -- показать нотификацию { text, style }
+
+    -- Server → Client (deprecated — RouletteController слушает Balloon_Result)
+    -- Roulette_Show  : RemoteEvent
 }
 ```
 
@@ -286,8 +293,10 @@ ReplicaClient.RequestData()  -- вызвать один раз в Client.client
 
 [CLIENT] BalloonController получает Balloon_Result
     → type=="pop":       switchPhase(Viewing), VFX лопания,
-                         1.5s auto → Ready (кнопка зелёная, камера на шаре)
-    → type=="roulette":  switchPhase(Viewing), RouletteController → Ready
+                          balloonModel скрыт на 1s, 1.5s auto → Ready
+    → type=="roulette":  switchPhase(Roulette) — шар скрыт, камера фикс, персонаж скрыт
+                         RouletteController.Show() — анимация рулетки
+                         Take/Exit → ReturnFromRoulette() → switchPhase(Viewing)
     → type=="coins_only":switchPhase(Viewing), 1.5s auto → Ready
     → Камера НЕ сбрасывается — переходы Viewing/Ready не трогают CameraType
     → Выход: ExitButton → switchPhase(Near) — CameraType = Custom, персонаж видим
@@ -298,6 +307,10 @@ ReplicaClient.RequestData()  -- вызвать один раз в Client.client
 Idle → Near → Inflating → Viewing → Ready → Inflating
   ↑        ↓                           ↑
   └────────┴─── ExitButton → Near ←────┘
+
+                    Roulette → ReturnFromRoulette() → Viewing
+                       ↑
+                       └─── Balloon_Result{type="roulette"}
 ```
 
 | Фаза | Камера | Персонаж | Старт | ExitButton |
@@ -307,6 +320,7 @@ Idle → Near → Inflating → Viewing → Ready → Inflating
 | `Inflating` | Scriptable → шар | скрыт | тёмно-зелёная | видна |
 | `Viewing` | Scriptable → шар | скрыт | красная/неактивна | видна |
 | `Ready` | Scriptable → шар | скрыт | зелёная | видна |
+| `Roulette` | Scriptable (фикс) | скрыт | красная/неактивна | скрыта |
 
 **Вход/выход со станции:** `StandPlatform.Touched/TouchEnded` (проверка HumanoidRootPart), вместо ProximityPrompt.
 
@@ -493,6 +507,9 @@ end
     BASE_SLOTS_PER_FLOOR  = 10,
     BASE_UPGRADE_KEY_COST = 1,       -- ключей за 1 слот
 
+    -- Базы
+    BASE_COUNT = 8,                  -- кол-во баз в Workspace (макс 8 игроков)
+
     -- Rebirth (POST-MVP)
     REBIRTH_COIN_REQUIREMENT = 100000,
     REBIRTH_LUCK_MULTIPLIER  = 0.5,  -- +0.5 к baseLuck за каждый rebirth
@@ -532,6 +549,19 @@ end
 
     -- Аудио
     APPLAUSE_INTERVAL = 10,   -- сек надувания до аплодисментов
+
+    -- Цвета редкостей
+    RARITY_COLORS = {
+        Common    = Color3.fromRGB(180, 180, 180),
+        Uncommon  = Color3.fromRGB(100, 200, 100),
+        Rare      = Color3.fromRGB(100, 150, 255),
+        Epic      = Color3.fromRGB(180, 100, 255),
+        Legendary = Color3.fromRGB(255, 180, 50),
+    },
+
+    function GameConfig.GetRarityColor(rarity)
+        return GameConfig.RARITY_COLORS[rarity] or Color3.fromRGB(255, 255, 255)
+    end
 }
 ```
 
@@ -578,6 +608,151 @@ AudioController.Stop(id)                  -- остановить трек
 -- "RouletteEnd"— конец рулетки
 -- "Music_1", "Music_2", ... — треки музыки
 ```
+
+---
+
+## RouletteController — интерфейс
+
+Клиентский модуль анимации рулетки. Слушает `Balloon_Result{type="roulette"}`.
+
+```lua
+RouletteController.Init()
+RouletteController.Start()
+
+-- Запустить анимацию прокрутки
+RouletteController.Show(result: RouletteResult)
+-- result = { type="pet"|"key"|"bomb", name?, rarity?, collectionName?, uid? }
+```
+
+**Константы:**
+```lua
+local ROULETTE_DURATION = 6.5          -- секунд
+local MIN_ITEM_SHOW_TIME = 0.08        -- мин. время показа элемента
+local MAX_ITEM_SHOW_TIME = 0.8         -- макс. время (в конце замедления)
+local FINAL_ITEMS_BEFORE = 3           -- элементов до результата
+```
+
+**Алгоритм:**
+1. `buildSequence(result)`: 20 случайных питомцев + 3 filler + результат
+2. `playSequence(sequence)`: Heartbeat-луп, замедление по `progress²`, ProgressBar
+3. `displayItem(item)`: обновить ItemDisplay (имя, редкость, цвет, scale-пульс)
+4. `showResult(result)`: ResultFrame, кнопки Take/Exit
+5. Take → `PetController.SpawnAndRun(petResult)` + `BalloonController.ReturnFromRoulette()`
+6. Exit → `BalloonController.ReturnFromRoulette()`
+
+**Структура UI (RouletteGui, ScreenGui, Enabled=false):**
+```
+BackgroundFrame (Frame, BackgroundTransparency=1)
+RouletteFrame (Frame)
+├── ItemDisplay (Frame)
+│   ├── PetNameLabel (TextLabel)
+│   ├── RarityLabel (TextLabel)
+│   └── ItemIcon (ImageLabel)
+├── ProgressBar (Frame)
+│   └── ProgressFill (Frame)
+└── ResultFrame (Frame, Visible=false)
+    ├── ResultNameLabel (TextLabel)
+    ├── ResultRarityLabel (TextLabel)
+    ├── TakeButton (TextButton)
+    └── ExitButton (TextButton)
+```
+
+---
+
+## PetController — интерфейс
+
+Клиентский модуль визуального отображения питомцев. Слушает `Base_Assigned` и Replica `StandPets`.
+
+```lua
+PetController.Init()
+PetController.Start()
+
+-- Спавн питомца у шара + вызов Pet_PlaceStand
+PetController.SpawnAndRun(petResult: RouletteResult)
+
+-- Обновить модели на стендах
+PetController.RefreshStands(standPets: table)
+```
+
+**SpawnAndRun:**
+1. Создать модель питомца в случайной точке внутри `BalloonStation.SpawnPets`
+2. Клонировать BillboardGui из `ReplicatedStorage.Assets.UI.PetBillboardGui`
+3. Заполнить: `NameLabel`, `RarityLabel` (с цветом редкости), `CollectionLabel`, `IncomeLabel`, `CostLabel`
+4. Найти первый пустой слот (`cachedStandPets`) и вызвать `Pet_PlaceStand:FireServer(slotIndex, uid)`
+5. Через 2.5 сек — fade Out + Destroy
+
+**Структура PetBillboardGui (ReplicatedStorage.Assets.UI):**
+```
+Frame
+├── CollectionLabel (TextLabel)
+├── NameLabel (TextLabel)
+├── RarityLabel (TextLabel)
+├── IncomeLabel (TextLabel)
+└── CostLabel (TextLabel)
+```
+
+**RefreshStands:**
+- Очистить старые модели (`spawnedStandModels`)
+- Для каждого занятого слота в `StandPets`: клонировать модель из `ReplicatedStorage.Assets.Pets[petEntry.name]` на `Base{baseId}/BaseArea/StandSlot_N`
+
+---
+
+## BaseService — серверный модуль
+
+Назначение физической базы из `Workspace.Location.Bases` каждому игроку при входе. In-memory, без сохранения в ProfileStore.
+
+```lua
+BaseService.Init()
+BaseService.Start()
+
+BaseService.GetBaseId(player) → baseId: number?
+```
+
+**PlayerAdded:**
+1. Просканировать `baseAssignments` (player → baseId), найти свободный индекс 1..`BASE_COUNT`
+2. Записать `player.Name` в `OwnerSign/Sign2/Background/SurfaceGui/Frame/OwnerLabel.Text`
+3. `Remotes.Base_Assigned:FireClient(player, baseId)`
+
+**PlayerRemoving:**
+1. Очистить `OwnerLabel.Text`
+2. Удалить из `baseAssignments`
+
+### Workspace — структура баз
+
+```
+Workspace
+└── Location
+    └── Bases
+        ├── Base1 (Model)
+        │   ├── BaseArea (Model)
+        │   │   ├── StandSlot_1 (Part) ... StandSlot_10 (Part)
+        │   └── OwnerSign (Model)
+        │       └── Sign2 (Part)
+        │           └── Background (Part)
+        │               └── SurfaceGui
+        │                   └── Frame
+        │                       └── OwnerLabel (TextLabel)
+        ├── Base2 (Model)  -- такая же структура
+        ...
+        └── Base8 (Model)  -- такая же структура
+```
+
+---
+
+## BalloonController — ReturnFromRoulette
+
+Публичный метод для выхода из фазы Roulette.
+
+```lua
+-- Вызывается RouletteController после Take/Exit
+-- Возвращает шар в станцию и переключает фазу в Viewing
+BalloonController.ReturnFromRoulette()
+```
+
+При срабатывании `Balloon_Result{type="roulette"}`:
+1. BalloonController: `switchPhase(Phase.Roulette)` — шар скрыт (`balloonModel.Parent = nil`), камера остаётся Scriptable (фикс), персонаж скрыт, ExitButton скрыта, StartButton неактивен
+2. RouletteController: `Show(result)` — RouletteGui с прокруткой
+3. После Take/Exit: `ReturnFromRoulette()` → `balloonModel.Parent = balloonStation`, `switchPhase(Viewing)`
 
 ---
 
