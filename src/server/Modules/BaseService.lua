@@ -82,4 +82,20 @@ function BaseService.GetBaseId(player)
 	return baseAssignments[player]
 end
 
+function BaseService.GetSpawnCFrame(player)
+	local baseId = BaseService.GetBaseId(player)
+	if not baseId then
+		return nil
+	end
+	local baseModel = basesFolder:FindFirstChild("Base" .. tostring(baseId))
+	if not baseModel then
+		return nil
+	end
+	local spawnPoint = baseModel:FindFirstChild("SpawnPoint")
+	if not spawnPoint or not spawnPoint:IsA("BasePart") then
+		return nil
+	end
+	return spawnPoint.CFrame
+end
+
 return BaseService

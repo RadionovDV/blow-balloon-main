@@ -1,15 +1,18 @@
 # Project State
 
 ## Completed
-- [ ] ...
+- [x] Spawn player near assigned base
+- [x] Replica subscription fixed using `ReadyPlayers` / `NewReadyPlayer`
 
 ## In Progress
 - [ ] ...
 
 ## Frozen Contracts
-- [ ] PlayerData schema v1
-- [ ] Remote registry v1
-- [ ] Core service Init/Start pattern
+- [x] PlayerData schema v1
+- [x] Remote registry v1
+- [x] Core service Init/Start pattern
+- [x] Server max players: 4
+- [x] Base count in MVP: 4
 
 ## Next Tasks
 - [ ] ...

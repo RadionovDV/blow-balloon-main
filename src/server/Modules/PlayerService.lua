@@ -6,6 +6,7 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicaServer = require(ServerScriptService.Lib.ReplicaServer)
 local ProfileStore = require(ServerScriptService.Lib.ProfileStore)
 local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
+local BaseService = require(ServerScriptService.Modules.BaseService)
 
 local PlayerService = {}
 
@@ -39,6 +40,19 @@ function PlayerService.Init()
 	PlayerDataToken = ReplicaServer.Token("PlayerData")
 
 	Players.PlayerAdded:Connect(function(player)
+		local function applySpawn(character)
+			local rootPart = character:WaitForChild("HumanoidRootPart", 2)
+			if not rootPart then
+				return
+			end
+			local spawnCFrame = BaseService.GetSpawnCFrame(player)
+			if spawnCFrame then
+				character:PivotTo(spawnCFrame)
+			end
+		end
+
+		player.CharacterAdded:Connect(applySpawn)
+
 		local success, profile = pcall(function()
 			return profileStore:StartSessionAsync(tostring(player.UserId))
 		end)
@@ -48,7 +62,7 @@ function PlayerService.Init()
 			return
 		end
 
-		profile:OnSessionEnd(function()
+		profile.OnSessionEnd:Connect(function()
 			player:Kick("Data session ended. Please rejoin.")
 		end)
 
@@ -83,6 +97,10 @@ function PlayerService.Init()
 
 		profiles[player] = profile
 		replicas[player] = replica
+
+		if player.Character then
+			applySpawn(player.Character)
+		end
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)

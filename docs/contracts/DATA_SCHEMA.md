@@ -6,7 +6,6 @@
 - Клиент не является источником истины
 
 ## ProfileTemplate
-
 {
     Coins = 0,
     Balloons = { Default = 1 },
@@ -35,3 +34,4 @@
 Pets = список/массив питомцев игрока
 StandPets = питомцы, размещённые на стойках
 GamePasses = runtime cache, не обязательно сохранять
+Coins, Balloons, ActiveBalloon, Pets, StandPets, BaseLevel, BaseSlots, RebirthCount, BaseLuck, LuckBonuses, TutorialStep реплицируются через Replica
