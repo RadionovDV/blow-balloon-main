@@ -163,9 +163,10 @@ function RouletteController.Init()
 
 	TakeButton.MouseButton1Click:Connect(function()
 		AudioController.Play(AudioController.Sounds.ButtonClick)
+		local result = lastResult
 		hideRoulette()
-		if lastResult and lastResult.type == "pet" then
-			PetController.SpawnAndRun(lastResult)
+		if result and result.type == "pet" then
+			PetController.SpawnAndRun(result)
 		end
 		BalloonController.ReturnFromRoulette()
 	end)

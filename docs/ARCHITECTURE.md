@@ -14,6 +14,60 @@
 | Animation | StatefulObjectController → TweenService |
 | Audio | AudioController.Play(soundName) |
 
+
+## Studio-иерархия (полная)
+
+```
+ReplicatedStorage
+├── Lib/
+│   ├── ReplicaClient          (ModuleScript)
+│   └── ReplicaShared/         (Folder)
+│       ├── Maid               (ModuleScript)
+│       ├── RateLimit          (ModuleScript)
+│       ├── Remote             (ModuleScript)
+│       └── Signal             (ModuleScript)
+├── Shared/
+│   ├── Config/
+│   │   ├── BalloonConfig      (ModuleScript)
+│   │   ├── PetConfig          (ModuleScript)
+│   │   └── GameConfig         (ModuleScript)
+│   ├── Util/
+│   │   ├── RarityUtil         (ModuleScript)
+│   │   └── TableUtil          (ModuleScript)
+│   └── Remotes                (ModuleScript)
+└── Assets/                    (вручную в Studio: модели, звуки, VFX)
+
+ServerScriptService
+├── Lib/
+│   ├── ReplicaServer          (ModuleScript)
+│   └── ProfileStore           (ModuleScript)
+├── Server.server              (Script)
+└── Modules/
+    ├── PlayerService          (ModuleScript)
+    ├── BalloonService         (ModuleScript)
+    ├── RouletteService        (ModuleScript)
+    ├── PetService             (ModuleScript)
+    ├── EconomyService         (ModuleScript)
+    ├── LuckService            (ModuleScript)
+    ├── BaseService            (ModuleScript)
+    └── RebirthService         (ModuleScript)  ← POST-MVP
+
+StarterPlayerScripts
+├── Client.client              (LocalScript)
+└── Modules/
+    ├── BalloonController      (ModuleScript)
+    ├── RouletteController     (ModuleScript)
+    ├── PetController          (ModuleScript)
+    ├── HudController          (ModuleScript)
+    ├── ShopController         (ModuleScript)
+    ├── AudioController        (ModuleScript)
+    ├── StatefulObjectController (ModuleScript)
+    └── TutorialController     (ModuleScript)
+
+StarterGui
+└── (UI Frames созданы вручную в Studio, скриптами только управляются)
+```
+
 ## 2. Core Constraints
 - Максимум игроков на сервере: 4
 - Количество баз в текущем MVP: 4
