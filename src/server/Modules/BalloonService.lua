@@ -32,9 +32,13 @@ function BalloonService.Start()
 			Remotes.Balloon_Result:FireClient(player, { type = "no_balloon" })
 			return
 		end
-
+		
+		
 		inflating[player] = { startTime = tick(), balloonName = activeBalloon, popped = false }
 
+		data.Balloons[activeBalloon] -= 1
+		PlayerService.SetData(player, {"Balloons"}, data.Balloons)
+		
 		task.spawn(function()
 			while inflating[player] and not inflating[player].popped do
 				task.wait(0.5)
@@ -108,6 +112,37 @@ function BalloonService.Start()
 
 		PlayerService.SetData(player, {"ActiveBalloon"}, balloonName)
 	end)
+
+	Remotes.Shop_BuyBalloon.OnServerInvoke = function(player, payload)
+		if type(payload) ~= "table" or type(payload.balloonName) ~= "string" then
+			return false
+		end
+
+		local balloonName = payload.balloonName
+
+		if balloonName == "Default" then
+			return false
+		end
+
+		local config = BalloonConfig[balloonName]
+		if not config then
+			return false
+		end
+
+		local data = PlayerService.GetData(player)
+		if not data then
+			return false
+		end
+
+		if not EconomyService.SpendCoins(player, config.price) then
+			return false
+		end
+
+		data.Balloons[balloonName] = (data.Balloons[balloonName] or 0) + 1
+		PlayerService.SetData(player, {"Balloons"}, data.Balloons)
+
+		return true
+	end
 end
 
 function getPopChance(popCurve, elapsed)
