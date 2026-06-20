@@ -16,3 +16,4 @@
 - All currency changes are server-side
 - Client only displays values
 - Shop must validate affordability on server
+- Balloon shop purchase uses `SpendCoins`, then updates balloon inventory on the server

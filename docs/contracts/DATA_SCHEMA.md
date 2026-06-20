@@ -33,5 +33,7 @@
 ## Notes
 Pets = список/массив питомцев игрока
 StandPets = питомцы, размещённые на стойках
+Default Balloon = стартовый шар игрока и уже присутствует в инвентаре
+Balloon inventory хранится как словарь `{[balloonName]: count}`
 GamePasses = runtime cache, не обязательно сохранять
 Coins, Balloons, ActiveBalloon, Pets, StandPets, BaseLevel, BaseSlots, RebirthCount, BaseLuck, LuckBonuses, TutorialStep реплицируются через Replica

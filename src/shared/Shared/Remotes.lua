@@ -19,6 +19,7 @@ local REMOTE_EVENT_NAMES = {
 local REMOTE_FUNCTION_NAMES = {
 	"Shop_BuyBalloon",
 	"Base_Collect",
+	"Rebirth_Perform",
 }
 
 if RunService:IsServer() then

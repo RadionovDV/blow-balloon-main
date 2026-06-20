@@ -10,6 +10,8 @@
 ## Server Side
 ### BalloonService
 - validates inflate start/stop
+- checks balloon ownership before inflate start
+- consumes one balloon from inventory on `Balloon_Start`
 - tracks server timer
 - calculates reward
 - decides burst / roulette / coin-only result
@@ -26,11 +28,12 @@ Phases:
 
 ## Main Flow
 1. Client sends `Balloon_Start`
-2. Server starts timer
-3. Server computes outcome on `Balloon_Stop`
-4. Server updates Coins through Replica
-5. Server sends `Balloon_Result`
-6. Client switches phase and shows VFX/UI
+2. Server validates ownership and consumes one balloon from inventory
+3. Server starts timer
+4. Server computes outcome on `Balloon_Stop`
+5. Server updates Coins through Replica
+6. Server sends `Balloon_Result`
+7. Client switches phase and shows VFX/UI
 
 ## Notes
 - Camera transitions are client-side only

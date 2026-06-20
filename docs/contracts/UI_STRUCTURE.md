@@ -1,9 +1,25 @@
+## UI Store (ReplicatedStorage)
+ReplicatedStorage.Assets.UI - в этой папке хранятся все UI элементы для динамического названения
+
 ### HudGui (ScreenGui)
 - `ResetOnSpawn = false`
 - `IgnoreGuiInset = true` (опционально)
 - Содержимое:
   - `CoinsLabel` (TextLabel) — позиция вверху слева
   - `LuckLabel` (TextLabel) — позиция внизу слева
+  - `RightSide` (Frame)
+    - `ShopButton` (TextButton)
+  - `RebirthFrame` (Frame)
+    - `BottomLine` (Frame)
+      - `PetSlots` (Frame)
+        - `PetSlot` (Frame) - UI Store
+      - `RebirthButton` (ImageButton)
+        - `Lock` (Frame)
+        - `ImageLabel` (ImageLabel)
+    - `CoinAmount` (Frame)
+      - `Filler`  (Frame)
+      - `AmountLabel` (TextLabel)
+
 
 ### NotificationGui (ScreenGui)
 - `ResetOnSpawn = false`
@@ -45,7 +61,7 @@
   - `CloseButton` (TextButton) — крестик в углу
   - `TitleLabel` (TextLabel) — "Магазин шаров"
   - `BalloonListFrame` (ScrollingFrame) — список шаров
-    - `BalloonItemTemplate` (Frame, `Visible = false`)
+    - `BalloonItemTemplate` (Frame, `Visible = false`) - BalloonItemTemplate из UI Store
       - `BalloonNameLabel` (TextLabel)
       - `BalloonPriceLabel` (TextLabel)
       - `BalloonRarityLabel` (TextLabel)

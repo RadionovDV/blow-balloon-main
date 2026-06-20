@@ -50,6 +50,7 @@
 - Direction: Client → Server
 - Purpose: купить шар
 - Payload: { balloonName: string }
+- Return: `true/false`
 
 ###  Base_Collect
 - Type: RemoteFunction
