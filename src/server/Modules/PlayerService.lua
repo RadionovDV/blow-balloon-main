@@ -16,6 +16,7 @@ local ProfileTemplate = {
 	ActiveBalloon = "Default",
 	Pets          = {},
 	StandPets     = {},
+	Index         = {},
 	BaseLevel     = 1,
 	BaseSlots     = 10,
 	RebirthCount  = 0,

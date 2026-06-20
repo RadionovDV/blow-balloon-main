@@ -8,6 +8,7 @@ local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PlayerService = require(ServerScriptService.Modules.PlayerService)
 local EconomyService = require(ServerScriptService.Modules.EconomyService)
+local IndexService = require(ServerScriptService.Modules.IndexService)
 
 local PetService = {}
 
@@ -96,7 +97,9 @@ function PetService.AddPet(player, petResult)
 		collectionName = petResult.collectionName,
 	}
 	table.insert(data.Pets, entry)
-	
+
+	IndexService.AddToIndex(player, petResult.name)
+
 	PlayerService.GetReplica(player):Set({"Pets"}, data.Pets)
 	return entry
 end

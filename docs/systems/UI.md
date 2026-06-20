@@ -15,5 +15,6 @@
 ## Controllers
 - `HudController`
 - `ShopController`
+- `IndexController`
 - `TutorialController`
 - `RouletteController`

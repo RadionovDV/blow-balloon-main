@@ -7,6 +7,7 @@
 - [x] Balloon purchase flow added via `Shop_BuyBalloon`
 - [x] Balloon inventory is consumed on `Balloon_Start`
 - [x] Rebirth UI controller wired to `HudGui.RebirthFrame`
+- [x] Index system added for permanent pet collection tracking
 
 ## In Progress
 - [ ] ...

@@ -9,6 +9,7 @@ ReplicatedStorage.Assets.UI - в этой папке хранятся все UI 
   - `LuckLabel` (TextLabel) — позиция внизу слева
   - `RightSide` (Frame)
     - `ShopButton` (TextButton)
+    - `IndexButton` (TextButton)
   - `RebirthFrame` (Frame)
     - `BottomLine` (Frame)
       - `PetSlots` (Frame)

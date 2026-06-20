@@ -45,6 +45,7 @@ ServerScriptService
 └── Modules/
     ├── PlayerService          (ModuleScript)
     ├── BalloonService         (ModuleScript)
+    ├── IndexService           (ModuleScript)
     ├── RouletteService        (ModuleScript)
     ├── PetService             (ModuleScript)
     ├── EconomyService         (ModuleScript)
@@ -63,6 +64,7 @@ StarterPlayerScripts
     ├── RebirthController       (ModuleScript)
     ├── AudioController        (ModuleScript)
     ├── StatefulObjectController (ModuleScript)
+    ├── IndexController (ModuleScript)
     └── TutorialController     (ModuleScript)
 
 StarterGui
@@ -114,6 +116,7 @@ StarterGui
 - `BaseService` owns base assignment, base ownership labels, and spawn CFrame lookup for assigned bases
 - `EconomyService` owns currency mutations
 - `LuckService` owns luck calculation
+- `IndexService` owns pet collection index mutation and persistence
 - `RouletteService` owns roulette outcome generation
 - `TutorialService` owns tutorial progression
 - `MonetizationService` owns GamePass / DevProduct flow
