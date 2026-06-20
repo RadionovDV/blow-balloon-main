@@ -20,6 +20,30 @@ ReplicatedStorage.Assets.UI - в этой папке хранятся все UI 
       - `Filler`  (Frame)
       - `AmountLabel` (TextLabel)
 
+### IndexGui (ScreenGui)
+- `ResetOnSpawn = false`
+- Содержание:
+- `IndexFrame` (Frame)
+- `UIAspectRatioConstraint` — для поддержания соотношения сторон
+- `UICorner` — для закруглённых углов
+- `UIListLayout` — для вертикального расположения элементов
+- `UIPadding` — для отступов между элементами
+- `UIStroke` — для границ
+  - `ProgressBar` (Frame)
+  - `UICorner` — для закруглённых углов
+  - `UIStroke`
+    - `Filler` (Frame)
+    - `AmountLabel` (TextLabel)
+  - `ScrollingFrame` (ScrollingFrame)
+  - `UICorner`
+  - `UIListLayout`
+  - `UIPadding`
+    - `IndexItem` (Frame) - UI Store
+  - `UICorner`
+  - `UIGradient` — для градиентного фона
+  - `UIStroke`
+    - `IconLabel` (ImageLabel)
+      - `NameLabel` (TextLabel)
 
 ### NotificationGui (ScreenGui)
 - `ResetOnSpawn = false`

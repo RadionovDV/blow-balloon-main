@@ -75,3 +75,10 @@
 - Direction: Server → Client
 - Purpose: показать нотификацию
 - Payload: { text: string, style: string? }
+
+###  Rebirth_Perform
+- Type: RemoteFunction
+- Direction: Client → Server
+- Purpose: запросить rebirth
+- Payload: none
+- Return: `true/false`

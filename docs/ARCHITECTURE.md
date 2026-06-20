@@ -60,6 +60,7 @@ StarterPlayerScripts
     ├── PetController          (ModuleScript)
     ├── HudController          (ModuleScript)
     ├── ShopController         (ModuleScript)
+    ├── RebirthController       (ModuleScript)
     ├── AudioController        (ModuleScript)
     ├── StatefulObjectController (ModuleScript)
     └── TutorialController     (ModuleScript)

@@ -16,6 +16,23 @@ local pendingIncome = {}
 function PetService.Init()
 end
 
+local function generateUid()
+	return tostring(math.floor(tick() * 1000)) .. "_" .. tostring(math.random(1000, 9999))
+end
+
+local function findPetConfig(name, collectionName)
+	local collection = PetConfig[collectionName]
+	if not collection then
+		return nil
+	end
+	for _, pet in ipairs(collection) do
+		if pet.name == name then
+			return pet
+		end
+	end
+	return nil
+end
+
 function PetService.Start()
 	Remotes.Pet_PlaceStand.OnServerEvent:Connect(function(player, slotIndex, petUid)
 		PetService.PlaceOnStand(player, petUid, slotIndex)
@@ -66,23 +83,6 @@ function PetService.Start()
 	end)
 end
 
-local function generateUid()
-	return tostring(math.floor(tick() * 1000)) .. "_" .. tostring(math.random(1000, 9999))
-end
-
-local function findPetConfig(name, collectionName)
-	local collection = PetConfig[collectionName]
-	if not collection then
-		return nil
-	end
-	for _, pet in ipairs(collection) do
-		if pet.name == name then
-			return pet
-		end
-	end
-	return nil
-end
-
 function PetService.AddPet(player, petResult)
 	local data = PlayerService.GetData(player)
 	if not data then
@@ -96,6 +96,7 @@ function PetService.AddPet(player, petResult)
 		collectionName = petResult.collectionName,
 	}
 	table.insert(data.Pets, entry)
+	
 	PlayerService.GetReplica(player):Set({"Pets"}, data.Pets)
 	return entry
 end
@@ -114,23 +115,25 @@ function PetService.PlaceOnStand(player, petUid, slotIndex)
 		return false
 	end
 
-	local petIndex = nil
-	for i, entry in ipairs(data.Pets) do
-		if entry.uid == petUid then
-			petIndex = i
+	--local petIndex = nil
+	local entry = nil
+	for i, tireEntry in ipairs(data.Pets) do
+		if tireEntry.uid == petUid then
+			entry = tireEntry
+			--petIndex = i
 			break
 		end
 	end
 
-	if not petIndex then
+	if not entry then
 		return false
 	end
 
-	local entry = table.remove(data.Pets, petIndex)
+	--local entry = table.remove(data.Pets, petIndex)
 	data.StandPets[tostring(slotIndex)] = entry
 
 	local replica = PlayerService.GetReplica(player)
-	replica:Set({"Pets"}, data.Pets)
+	--replica:Set({"Pets"}, data.Pets)
 	replica:Set({"StandPets"}, data.StandPets)
 	return true
 end
