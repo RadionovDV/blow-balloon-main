@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local BalloonConfig = require(ReplicatedStorage.Shared.Config.BalloonConfig)
+local PetConfig = require(ReplicatedStorage.Shared.Config.PetConfig)
 local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PlayerService = require(ServerScriptService.Modules.PlayerService)
@@ -87,10 +88,12 @@ function BalloonService.Start()
 
 		if math.random(1, GameConfig.ROULETTE_CHANCE) == 1 then
 			local result = RouletteService.Roll(player, config.maxRarity, inflatePercent)
+			result.icon = ""
 			if result.type == "pet" then
 				local entry = PetService.AddPet(player, result)
 				if entry then
 					result.uid = entry.uid
+					result.icon = PetConfig.GetPetByName(entry.name).icon
 				end
 			end
 			Remotes.Balloon_Result:FireClient(player, { type = "roulette", result = result, reward = reward })

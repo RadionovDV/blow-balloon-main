@@ -153,10 +153,16 @@ function PetController.RefreshStands(standPets)
 
 		local petModel = template:Clone()
 		petModel.Parent = workspace
-		local primaryPart = findPrimaryPart(petModel)
-		if primaryPart then
-			primaryPart.Position = standSlot.Position + Vector3.new(0, 1, 0)
-			primaryPart.Anchored = true
+		local petBody = findPrimaryPart(petModel) :: BasePart
+		local standMesh = standSlot:FindFirstChild("StandMesh")
+		if not standMesh then
+			continue
+		end
+
+		if petBody then
+			petBody.Position = standMesh.Position + Vector3.new(0, 3, 0)
+			petBody.Anchored = true
+			petBody.Rotation = standMesh.Rotation
 		end
 
 		spawnedStandModels[slotIndex] = petModel
@@ -217,19 +223,21 @@ function PetController.Init()
 	end)
 end
 
+local accum = 0
+
 function PetController.Start()
 	RunService.Heartbeat:Connect(function(dt)
-		local interval = GameConfig.STAND_INCOME_INTERVAL
-		for slotKey, billboard in pairs(incomeBillboards) do
-			local petEntry = cachedStandPets[slotKey]
-			if not petEntry then continue end
-			local petConfig = getPetConfigByName(petEntry.name, petEntry.collectionName)
-			if not petConfig then continue end
-			displayTotal[slotKey] = (displayTotal[slotKey] or 0) + petConfig.standIncome * dt
-			if displayTotal[slotKey] >= interval then
+		accum += dt
+		if accum >= GameConfig.STAND_INCOME_INTERVAL then
+			accum -= GameConfig.STAND_INCOME_INTERVAL
+			for slotKey, billboard in pairs(incomeBillboards) do
+				local petEntry = cachedStandPets[slotKey]
+				if not petEntry then continue end
+				local petConfig = getPetConfigByName(petEntry.name, petEntry.collectionName)
+				if not petConfig then continue end
+				displayTotal[slotKey] = (displayTotal[slotKey] or 0) + petConfig.standIncome
 				local label = billboard.Frame.AmmountLabel
 				label.Text = tostring(math.floor(displayTotal[slotKey]))
-				displayTotal[slotKey] = 0
 			end
 		end
 	end)

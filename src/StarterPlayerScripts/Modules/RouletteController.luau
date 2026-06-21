@@ -20,14 +20,14 @@ local MAX_ITEM_SHOW_TIME = 0.8
 local FINAL_ITEMS_BEFORE = 3
 
 local RouletteGui = PlayerGui:WaitForChild("RouletteGui")
-local BackgroundFrame = RouletteGui:WaitForChild("BackgroundFrame")
 local RouletteFrame = RouletteGui:WaitForChild("RouletteFrame")
 local ItemDisplay = RouletteFrame:WaitForChild("ItemDisplay")
-local PetNameLabel = ItemDisplay:WaitForChild("PetNameLabel")
-local RarityLabel = ItemDisplay:WaitForChild("RarityLabel")
-local ItemIcon = ItemDisplay:WaitForChild("ItemIcon")
+local ItemIcon = ItemDisplay:WaitForChild("PetIcon")
+local RarityLabel = ItemIcon:WaitForChild("RarityLabel")
+
 local ProgressBar = RouletteFrame:WaitForChild("ProgressBar")
 local ProgressFill = ProgressBar:WaitForChild("ProgressFill")
+
 local ResultFrame = RouletteFrame:WaitForChild("ResultFrame")
 local ResultNameLabel = ResultFrame:WaitForChild("ResultNameLabel")
 local ResultRarityLabel = ResultFrame:WaitForChild("ResultRarityLabel")
@@ -40,7 +40,7 @@ local activeConnection = nil
 local function getRandomRouletteItem()
 	local base = PetConfig.Base
 	local idx = math.random(#base)
-	return { type = "pet", name = base[idx].name, rarity = base[idx].rarity }
+	return { type = "pet", name = base[idx].name, rarity = base[idx].rarity, icon = base[idx].icon }
 end
 
 local function buildSequence(result)
@@ -57,16 +57,14 @@ end
 
 local function displayItem(item)
 	if item.type == "pet" then
-		PetNameLabel.Text = item.name
 		RarityLabel.Text = item.rarity
 		RarityLabel.TextColor3 = GameConfig.GetRarityColor(item.rarity)
+		ItemIcon.Image = item.icon
 	elseif item.type == "key" then
-		PetNameLabel.Text = "Golden Key"
-		RarityLabel.Text = "Special"
+		RarityLabel.Text = "Golden Key"
 		RarityLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
 	elseif item.type == "bomb" then
-		PetNameLabel.Text = "Bomb!"
-		RarityLabel.Text = "Special"
+		RarityLabel.Text = "Bomb"
 		RarityLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
 	end
 	ItemDisplay.Size = UDim2.new(0.9, 0, 0.9, 0)
@@ -104,7 +102,7 @@ local function hideRoulette()
 		activeConnection:Disconnect()
 		activeConnection = nil
 	end
-	StatefulObjectController.Tween(BackgroundFrame, { BackgroundTransparency = 1 }, 0.2)
+	--StatefulObjectController.Tween(BackgroundFrame, { BackgroundTransparency = 1 }, 0.2)
 	task.wait(0.2)
 	RouletteGui.Enabled = false
 	ProgressBar.Visible = true
@@ -127,7 +125,7 @@ local function playSequence(sequence, finalResult)
 			+ (MAX_ITEM_SHOW_TIME - MIN_ITEM_SHOW_TIME) * (progress ^ 2)
 
 		local fillProgress = 1 - (itemTimer / currentItemDuration)
-		ProgressFill.Size = UDim2.new(math.clamp(fillProgress, 0, 1), 0, 1, 0)
+		ProgressFill.Size = UDim2.fromScale(1, math.clamp(fillProgress, 0, 1))
 
 		if itemTimer >= currentItemDuration then
 			itemTimer = 0
@@ -148,8 +146,8 @@ end
 function RouletteController.Show(result)
 	local sequence = buildSequence(result)
 	RouletteGui.Enabled = true
-	BackgroundFrame.BackgroundTransparency = 1
-	StatefulObjectController.Tween(BackgroundFrame, { BackgroundTransparency = 0.5 }, 0.3)
+	--BackgroundFrame.BackgroundTransparency = 1
+	--StatefulObjectController.Tween(BackgroundFrame, { BackgroundTransparency = 0.5 }, 0.3)
 	playSequence(sequence, result)
 end
 

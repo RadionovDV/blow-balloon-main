@@ -1,11 +1,12 @@
 local BalloonConfig = {}
 
 BalloonConfig.Default = {
-	displayName = "Default Balloon",
+	displayName = "Red",
 	maxRarity   = "Common",
 	price       = 0,
 	baseReward  = 0,
 	maxReward   = 600,
+	layoutOrder = 1,
 	popCurve = {
 		{ time = 0,  chance = 0.15 },
 		{ time = 5,  chance = 0.20 },
@@ -15,12 +16,13 @@ BalloonConfig.Default = {
 	},
 }
 
-BalloonConfig.Pink = {
-	displayName = "Pink Balloon",
-	maxRarity   = "Rare",
+BalloonConfig.Green = {
+	displayName = "Green",
+	maxRarity   = "Uncommon",
 	price       = 500,
 	baseReward  = 20,
 	maxReward   = 1200,
+	layoutOrder = 2,
 	popCurve = {
 		{ time = 0,  chance = 0.10 },
 		{ time = 5,  chance = 0.15 },
@@ -32,11 +34,12 @@ BalloonConfig.Pink = {
 }
 
 BalloonConfig.Blue = {
-	displayName = "Blue Balloon",
-	maxRarity   = "Uncommon",
+	displayName = "Blue",
+	maxRarity   = "Rare",
 	price       = 100,
 	baseReward  = 15,
 	maxReward   = 900,
+	layoutOrder = 3,
 	popCurve = {
 		{ time = 0,  chance = 0.12 },
 		{ time = 5,  chance = 0.18 },

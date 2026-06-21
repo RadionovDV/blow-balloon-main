@@ -12,6 +12,7 @@ end
 
 function EconomyService.AddCoins(player, amount)
 	local data = PlayerService.GetData(player)
+	
 	if not data then
 		return
 	end

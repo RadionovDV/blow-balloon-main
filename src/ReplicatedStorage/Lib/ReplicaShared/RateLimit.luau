@@ -1,4 +1,4 @@
---!strict
+
 --[[
 MAD STUDIO
 
@@ -56,16 +56,16 @@ function RateLimit.New(rate : number, is_full_wait : boolean?) --> [RateLimit]
 end
 
 function RateLimit:CheckRate(source) : boolean --> is_to_be_processed [bool] -- Whether event should be processed
-	
+
 	local sources = self.sources
 	local os_clock = os.clock()
-	
+
 	if source == nil then
 		source = "nil"
 	end
-	
+
 	local rate_time: number = sources[source]
-	
+
 	if rate_time ~= nil then
 		if self.is_full_wait ~= true then
 			rate_time = math.max(os_clock, rate_time + self.rate_period)
@@ -92,7 +92,7 @@ function RateLimit:CheckRate(source) : boolean --> is_to_be_processed [bool] -- 
 		sources[source] = os_clock + self.rate_period
 		return true
 	end
-	
+
 end
 
 function RateLimit:CleanSource(source) -- Forgets about the source - must be called for any object that

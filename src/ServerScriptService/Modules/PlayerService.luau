@@ -36,6 +36,26 @@ local profiles = {}
 local replicas = {}
 local passCache = {}
 
+local function subscribeReplicaWhenReady(player, replica)
+	if ReplicaServer.ReadyPlayers[player] then
+		replica:Subscribe(player)
+		return
+	end
+
+	local conn
+	conn = ReplicaServer.NewReadyPlayer:Connect(function(readyPlayer)
+		if readyPlayer ~= player then
+			return
+		end
+
+		conn:Disconnect()
+
+		if replica:IsActive() then
+			replica:Subscribe(player)
+		end
+	end)
+end
+
 function PlayerService.Init()
 	profileStore = ProfileStore.New("PlayerData", ProfileTemplate)
 	PlayerDataToken = ReplicaServer.Token("PlayerData")
@@ -94,7 +114,14 @@ function PlayerService.Init()
 			Tags  = { UserId = player.UserId },
 			Data  = profile.Data,
 		})
-		replica:Subscribe(player)
+		
+		subscribeReplicaWhenReady(player, replica)
+		--replica:Subscribe(player)
+		--task.spawn(function()
+		--	task.wait(10)
+		--	replica:Subscribe(player)
+			
+		--end)
 
 		profiles[player] = profile
 		replicas[player] = replica

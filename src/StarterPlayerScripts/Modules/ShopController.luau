@@ -9,7 +9,7 @@ local itemTemplate = ReplicatedStorage.Assets.UI.BalloonItemTemplate
 
 local ShopController = {}
 
-local shopGui
+local balloonsGui
 local balloonList
 local selectedBalloonName = nil
 local selectedItem = nil
@@ -20,14 +20,14 @@ end
 function ShopController.Start()
 	local hudGui = PlayerGui:WaitForChild("HudGui")
 	local rightSide = hudGui:WaitForChild("RightSide")
-	local shopButton = rightSide:WaitForChild("ShopButton")
+	local ShopBalloonsButton = rightSide:WaitForChild("BalloonsButton")
 
-	shopGui = PlayerGui:WaitForChild("ShopGui")
-	local shopFrame = shopGui:WaitForChild("ShopFrame")
-	local closeButton = shopFrame:WaitForChild("CloseButton")
-	balloonList = shopFrame:WaitForChild("BalloonListFrame")
+	balloonsGui = PlayerGui:WaitForChild("BalloonsGui")
+	local balloonsFrame = balloonsGui:WaitForChild("BalloonsFrame")
+	local closeButton = balloonsFrame:WaitForChild("CloseButton")
+	balloonList = balloonsFrame:WaitForChild("BalloonsListFrame")
 
-	shopButton.MouseButton1Click:Connect(function()
+	ShopBalloonsButton.MouseButton1Click:Connect(function()
 		toggleShop()
 	end)
 
@@ -39,7 +39,7 @@ function ShopController.Start()
 end
 
 function toggleShop()
-	shopGui.Enabled = not shopGui.Enabled
+	balloonsGui.Enabled = not balloonsGui.Enabled
 end
 
 function populateBalloonList()
@@ -52,6 +52,7 @@ function populateBalloonList()
 	end
 
 	for name, config in pairs(BalloonConfig) do
+		if name == "Default" then continue end
 		local item = itemTemplate:Clone()
 		item.Name = name
 		item.Parent = balloonList
@@ -83,7 +84,7 @@ function selectBalloon(name, item)
 	if selectedItem then
 		selectedItem.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	end
-	
+
 	selectedBalloonName = name
 	selectedItem = item
 	item.BackgroundColor3 = Color3.fromRGB(200, 230, 255)

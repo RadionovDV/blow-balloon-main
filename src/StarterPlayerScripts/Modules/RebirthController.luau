@@ -72,9 +72,11 @@ end
 local function updateSinglePetSlot(petSlot, owned, petName)
 	if owned then
 		petSlot.BackgroundColor3 = COMPLETED_COLOR
+		petSlot.ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
 		petSlot.BackgroundTransparency = COMPLETED_BG_TRANSPARENCY
 	else
 		petSlot.BackgroundColor3 = INCOMPLETE_COLOR
+		petSlot.ImageLabel.ImageColor3 = Color3.fromRGB(0, 0, 0)
 		petSlot.BackgroundTransparency = INCOMPLETE_BG_TRANSPARENCY
 	end
 

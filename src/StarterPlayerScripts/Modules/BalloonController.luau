@@ -24,13 +24,15 @@ local Phase = {
 local phase = Phase.Idle
 
 local cachedActiveBalloon = "Default"
-local cachedOwnedBalloons = {}
+local ownedBalloons = {}
 
 local inflateConnection = nil
 local inflateLoopId = nil
 local startTime = 0
 local applauseTimer = 0
 local readyDelay = nil
+
+local BalloonButtonTemplate = ReplicatedStorage.Assets.UI:WaitForChild("BalloonInventoryButton")
 
 local location = Workspace:WaitForChild("Location")
 local balloonStation = location:WaitForChild("BalloonStation")
@@ -42,10 +44,13 @@ local billboardGui = PlayerGui:WaitForChild("BillboardGui")
 local rewardLabel = billboardGui:WaitForChild("RewardLabel")
 
 local balloonHudGui = PlayerGui:WaitForChild("BalloonHudGui")
-local startButton = balloonHudGui:WaitForChild("StartButton")
+local startButtonZone = balloonHudGui:WaitForChild("StartButtonZone")
+local imageFrame = startButtonZone:WaitForChild("ImageFrame")
+local startButton = imageFrame:WaitForChild("StartButton")
 local exitButton = balloonHudGui:WaitForChild("ExitButton")
-local balloonListFrame = balloonHudGui:WaitForChild("BalloonListFrame")
-local balloonItemTemplate = balloonListFrame:WaitForChild("BalloonItemTemplate")
+local balloonFrame = balloonHudGui:WaitForChild("BalloonListFrame")
+local balloonListFrame = balloonFrame:WaitForChild("ScrollingFrame")
+
 local luckBarFrame = balloonHudGui:WaitForChild("LuckBarFrame")
 local luckLabel = luckBarFrame:WaitForChild("LuckLabel")
 
@@ -106,25 +111,33 @@ end
 
 local function refreshBalloonList()
 	for _, child in ipairs(balloonListFrame:GetChildren()) do
-		if child ~= balloonItemTemplate then
+		if (child :: Instance):IsA("ImageButton") then
 			child:Destroy()
 		end
 	end
 
-	for balloonName, _ in pairs(cachedOwnedBalloons) do
-		local item = balloonItemTemplate:Clone()
-		item.Name = balloonName
-		item.Visible = true
+	for balloonName, balloonCount in pairs(ownedBalloons) do
+		local item = BalloonButtonTemplate:Clone()
 		local config = BalloonConfig[balloonName]
-		if config then
-			item:WaitForChild("NameLabel").Text = config.displayName
+		
+		item.Visible = true
+		item.CountLabel.Text = `x{balloonCount}`
+		item.NameLabel.Text = config.displayName
+		item.LayoutOrder = config.layoutOrder
+		
+		if balloonName ~= "Default" then 
+			item.IconLabel.ImageColor3 = GameConfig.RARITY_COLORS[config.maxRarity]
+		else
+			item.CountLabel.Text = `∞`
 		end
+		
 		if balloonName == cachedActiveBalloon then
 			item.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
 		else
-			item.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+			item.BackgroundColor3 = Color3.fromRGB(27, 29, 42)
 		end
-		item.SelectButton.MouseButton1Click:Connect(function()
+		
+		item.MouseButton1Click:Connect(function()
 			Remotes.Balloon_Equip:FireServer(balloonName)
 		end)
 		item.Parent = balloonListFrame
@@ -236,17 +249,24 @@ end
 function BalloonController.Init()
 	ReplicaClient.OnNew("PlayerData", function(replica)
 		cachedActiveBalloon = replica.Data.ActiveBalloon
-		cachedOwnedBalloons = replica.Data.Balloons
-
+		ownedBalloons = replica.Data.Balloons
+		
 		replica:OnSet({"ActiveBalloon"}, function(new)
 			cachedActiveBalloon = new
+			local config = BalloonConfig[new]
+			if new == "Default" then
+				balloonPart.Color = Color3.fromRGB(255, 0, 0)
+			else
+				balloonPart.Color = GameConfig.RARITY_COLORS[config.maxRarity]
+			end
+			
 			if phase == Phase.Near then
 				refreshBalloonList()
 			end
 		end)
 
 		replica:OnSet({"Balloons"}, function(new)
-			cachedOwnedBalloons = new
+			ownedBalloons = new
 			if phase == Phase.Near then
 				refreshBalloonList()
 			end

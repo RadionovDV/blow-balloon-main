@@ -1361,7 +1361,7 @@ local function RobloxMessageSubscription(profile, unique_session_id)
 
 end
 
-function ProfileStore:StartSessionAsync(profile_key, params)
+function ProfileStore:StartSessionAsync(profile_key: string, params)
 
 	local is_mock = ReadMockFlag()
 
@@ -1630,7 +1630,7 @@ function ProfileStore:StartSessionAsync(profile_key, params)
 
 end
 
-function ProfileStore:MessageAsync(profile_key, message)
+function ProfileStore:MessageAsync(profile_key: string, message)
 
 	local is_mock = ReadMockFlag()
 
@@ -1728,7 +1728,7 @@ function ProfileStore:MessageAsync(profile_key, message)
 
 end
 
-function ProfileStore:GetAsync(profile_key, version)
+function ProfileStore:GetAsync(profile_key: string, version)
 
 	local is_mock = ReadMockFlag()
 
@@ -1806,7 +1806,7 @@ function ProfileStore:GetAsync(profile_key, version)
 
 end
 
-function ProfileStore:RemoveAsync(profile_key)
+function ProfileStore:RemoveAsync(profile_key: string)
 
 	local is_mock = ReadMockFlag()
 
@@ -2037,7 +2037,7 @@ function ProfileVersionQuery:NextAsync()
 
 end
 
-function ProfileStore:VersionQuery(profile_key, sort_direction, min_date, max_date)
+function ProfileStore:VersionQuery(profile_key: string, sort_direction, min_date, max_date)
 
 	local is_mock = ReadMockFlag()
 
