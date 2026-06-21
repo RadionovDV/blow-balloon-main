@@ -21,6 +21,7 @@ local REMOTE_FUNCTION_NAMES = {
 	"Shop_BuyBalloon",
 	"Base_Collect",
 	"Rebirth_Perform",
+	"Roulette_ResolvePetChoice",
 }
 
 if RunService:IsServer() then

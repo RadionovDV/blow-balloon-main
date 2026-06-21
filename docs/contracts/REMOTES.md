@@ -88,3 +88,10 @@
 - Purpose: запросить rebirth
 - Payload: none
 - Return: `true/false`
+
+###  Roulette_ResolvePetChoice
+- Type: RemoteFunction
+- Direction: Client → Server
+- Purpose: игрок выбирает Take или Leave после рулетки
+- Payload: `{ choice: "take" | "leave" }`
+- Return: `{ success: boolean, reason: string? }`

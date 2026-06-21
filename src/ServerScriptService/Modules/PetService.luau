@@ -255,6 +255,38 @@ function PetService.AddPet(player, petResult)
 	return entry
 end
 
+function PetService.CommitPetToStand(player, petResult, slotIndex)
+	local data = PlayerService.GetData(player)
+	if not data then
+		return nil
+	end
+
+	if slotIndex > data.BaseSlots then
+		return nil
+	end
+
+	if data.StandPets[tostring(slotIndex)] ~= nil then
+		return nil
+	end
+
+	local entry = {
+		uid = generateUid(),
+		name = petResult.name,
+		rarity = petResult.rarity,
+		collectionName = petResult.collectionName,
+	}
+
+	data.StandPets[tostring(slotIndex)] = entry
+
+	IndexService.AddToIndex(player, petResult.name)
+
+	PlayerService.GetReplica(player):Set({"StandPets"}, data.StandPets)
+
+	local model = createStandModel(player, entry, slotIndex)
+
+	return entry, model
+end
+
 function PetService.PlaceOnStand(player, petUid, slotIndex)
 	local data = PlayerService.GetData(player)
 	if not data then

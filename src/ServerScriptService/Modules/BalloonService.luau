@@ -9,6 +9,8 @@ local PlayerService = require(ServerScriptService.Modules.PlayerService)
 local EconomyService = require(ServerScriptService.Modules.EconomyService)
 local RouletteService = require(ServerScriptService.Modules.RouletteService)
 local PetService = require(ServerScriptService.Modules.PetService)
+local PendingPetService = require(ServerScriptService.Modules.PendingPetService)
+local PetMovementService = require(ServerScriptService.Modules.PetMovementService)
 
 local BalloonService = {}
 
@@ -90,17 +92,66 @@ function BalloonService.Start()
 			local result = RouletteService.Roll(player, config.maxRarity, inflatePercent)
 			result.icon = ""
 			if result.type == "pet" then
-				local entry = PetService.AddPet(player, result)
-				if entry then
-					result.uid = entry.uid
-					result.icon = PetConfig.GetPetByName(entry.name).icon
-				end
+				PendingPetService.SetPending(player, result)
+				result.icon = PetConfig.GetPetByName(result.name).icon or ""
 			end
 			Remotes.Balloon_Result:FireClient(player, { type = "roulette", result = result, reward = reward })
 		else
 			Remotes.Balloon_Result:FireClient(player, { type = "coins_only", reward = reward })
 		end
 	end)
+
+	Remotes.Roulette_ResolvePetChoice.OnServerInvoke = function(player, payload)
+		if type(payload) ~= "table" or payload.choice ~= "take" and payload.choice ~= "leave" then
+			return { success = false }
+		end
+
+		local pendingResult = PendingPetService.GetPending(player)
+		if not pendingResult or pendingResult.type ~= "pet" then
+			return { success = false }
+		end
+
+		if payload.choice == "take" then
+			local data = PlayerService.GetData(player)
+			if not data then
+				return { success = false }
+			end
+
+			local freeSlot = nil
+			for i = 1, data.BaseSlots do
+				if data.StandPets[tostring(i)] == nil then
+					freeSlot = i
+					break
+				end
+			end
+
+			if freeSlot then
+				local petModel = PetMovementService.SpawnAtSpawnPets(pendingResult.name)
+				PetMovementService.MoveToBase(player, petModel, function()
+					PetService.CommitPetToStand(player, pendingResult, freeSlot)
+					if petModel and petModel.Parent then
+						petModel:Destroy()
+					end
+				end)
+				return { success = true }
+			else
+				Remotes.Notification:FireClient(player, {
+					text = "Игрок физически не может забрать питомца, из-за нехватки мест на стендах",
+				})
+				local petModel = PetMovementService.SpawnAtSpawnPets(pendingResult.name)
+				PetMovementService.WanderAndDespawn(petModel)
+				return { success = false, reason = "no_slots" }
+			end
+		end
+
+		if payload.choice == "leave" then
+			local petModel = PetMovementService.SpawnAtSpawnPets(pendingResult.name)
+			PetMovementService.WanderAndDespawn(petModel)
+			return { success = true }
+		end
+
+		return { success = false }
+	end
 
 	Remotes.Balloon_Equip.OnServerEvent:Connect(function(player, balloonName)
 		local data = PlayerService.GetData(player)

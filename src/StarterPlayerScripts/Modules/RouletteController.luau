@@ -163,16 +163,18 @@ function RouletteController.Init()
 		local result = lastResult
 		hideRoulette()
 		if result and result.type == "pet" then
-			Remotes.Pet_SpawnWorld:FireServer({ uid = result.uid })
-			task.wait(3)
-			Remotes.Pet_PlaceStand:FireServer(8, result.uid)
+			Remotes.Roulette_ResolvePetChoice:InvokeServer({ choice = "take" })
 		end
 		BalloonController.ReturnFromRoulette()
 	end)
 
 	ExitButton.MouseButton1Click:Connect(function()
 		AudioController.Play(AudioController.Sounds.ButtonClick)
+		local result = lastResult
 		hideRoulette()
+		if result and result.type == "pet" then
+			Remotes.Roulette_ResolvePetChoice:InvokeServer({ choice = "leave" })
+		end
 		BalloonController.ReturnFromRoulette()
 	end)
 end
