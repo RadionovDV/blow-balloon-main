@@ -8,6 +8,8 @@
 - [x] Balloon inventory is consumed on `Balloon_Start`
 - [x] Rebirth UI controller wired to `HudGui.RebirthFrame`
 - [x] Index system added for permanent pet collection tracking
+- [x] Pet world spawn moved to server for roulette flow
+- [x] Pet flow uses `StandPets` as canonical storage and `Pet_PlaceStand` only reorders existing pets
 
 ## In Progress
 - [ ] ...

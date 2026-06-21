@@ -11,7 +11,6 @@
     Balloons = { Default = 1 },
     ActiveBalloon = "Default",
 
-    Pets = {},
     StandPets = {},
     Index = {},
 
@@ -32,10 +31,9 @@
 }
 
 ## Notes
- Pets = список/массив питомцев игрока
- StandPets = питомцы, размещённые на стойках
+ StandPets = единственный список питомцев игрока, включая авто-посаженных и переставляемых
  Index = список уникальных имён питомцев, которых игрок хотя бы раз получал
  Default Balloon = стартовый шар игрока и уже присутствует в инвентаре
  Balloon inventory хранится как словарь `{[balloonName]: count}`
  GamePasses = runtime cache, не обязательно сохранять
- Coins, Balloons, ActiveBalloon, Pets, StandPets, Index, BaseLevel, BaseSlots, RebirthCount, BaseLuck, LuckBonuses, TutorialStep реплицируются через Replica
+ Coins, Balloons, ActiveBalloon, StandPets, Index, BaseLevel, BaseSlots, RebirthCount, BaseLuck, LuckBonuses, TutorialStep реплицируются через Replica

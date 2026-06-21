@@ -43,7 +43,7 @@ function RebirthService.CanRebirth(player)
 
 	for _, petName in ipairs(tier.requiredPets) do
 		local owned = false
-		for _, petEntry in ipairs(data.Pets) do
+		for _, petEntry in ipairs(data.StandPets) do
 			if petEntry.name == petName then
 				owned = true
 				break
@@ -74,7 +74,7 @@ function RebirthService.PerformRebirth(player)
 
 	data.RebirthCount = data.RebirthCount + 1
 	data.BaseLuck = data.BaseLuck * tier.luckMultiplier
-	data.Pets = {}
+	data.StandPets = {}
 	data.StandPets = {}
 	data.Coins = 0
 	data.Balloons = { Default = 1 }
@@ -87,7 +87,6 @@ function RebirthService.PerformRebirth(player)
 	local replica = PlayerService.GetReplica(player)
 	replica:Set({"RebirthCount"}, data.RebirthCount)
 	replica:Set({"BaseLuck"}, data.BaseLuck)
-	replica:Set({"Pets"}, data.Pets)
 	replica:Set({"StandPets"}, data.StandPets)
 	replica:Set({"Coins"}, data.Coins)
 	replica:Set({"Balloons"}, data.Balloons)

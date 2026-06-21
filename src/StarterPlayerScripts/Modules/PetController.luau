@@ -7,34 +7,20 @@ local ReplicaClient = require(ReplicatedStorage.Lib.ReplicaClient)
 local PetConfig = require(ReplicatedStorage.Shared.Config.PetConfig)
 local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
-local StatefulObjectController = require(script.Parent.StatefulObjectController)
 
 local PetController = {}
 
 local location = Workspace:WaitForChild("Location")
-local balloonStation = location:WaitForChild("BalloonStation")
 local basesFolder = location:WaitForChild("Bases")
-local petsFolder = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("Pets")
-local billboardTemplate = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("UI"):WaitForChild("PetBillboardGui")
 local incomeBillboardTemplate = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("UI"):WaitForChild("IncomeBillboardGui")
 
-local spawnedStandModels = {}
-local activePetSpawns = {}
 local assignedBaseId = nil
 local cachedBaseSlots = 10
 local cachedStandPets = {}
 
 local incomeBillboards = {}
 local displayTotal = {}
-
-local function findPrimaryPart(model)
-	for _, descendant in ipairs(model:GetDescendants()) do
-		if descendant:IsA("BasePart") then
-			return descendant
-		end
-	end
-	return nil
-end
+local touchConnections = {}
 
 local function getPetConfigByName(name, collectionName)
 	local collection = PetConfig[collectionName]
@@ -47,89 +33,24 @@ local function getPetConfigByName(name, collectionName)
 	return nil
 end
 
-function PetController.SpawnAndRun(petResult)
-	local spawnArea = balloonStation:WaitForChild("SpawnPets")
-	local half = spawnArea.Size / 2
-	local randPos = spawnArea.Position + Vector3.new(
-		math.random() * spawnArea.Size.X - half.X,
-		0,
-		math.random() * spawnArea.Size.Z - half.Z
-	)
-
-	local template = petsFolder:FindFirstChild(petResult.name)
-	if not template then
-		warn("[PetController] Pet model not found:", petResult.name)
-		return
-	end
-
-	local petModel = template:Clone()
-	petModel.Parent = workspace
-	local primaryPart = findPrimaryPart(petModel)
-	if primaryPart then
-		primaryPart.Position = randPos
-		primaryPart.Anchored = true
-	end
-
-	local billboard = billboardTemplate:Clone()
-	billboard.Parent = petModel
-	local nameLabel = billboard:FindFirstChild("NameLabel")
-	local rarityLabel = billboard:FindFirstChild("RarityLabel")
-	local collectionLabel = billboard:FindFirstChild("CollectionLabel")
-	local incomeLabel = billboard:FindFirstChild("IncomeLabel")
-	local costLabel = billboard:FindFirstChild("CostLabel")
-
-	if nameLabel then nameLabel.Text = petResult.name end
-	if rarityLabel then
-		rarityLabel.Text = petResult.rarity
-		rarityLabel.TextColor3 = GameConfig.GetRarityColor(petResult.rarity)
-	end
-	if collectionLabel then collectionLabel.Text = petResult.collectionName end
-
-	local petConfig = getPetConfigByName(petResult.name, petResult.collectionName)
-	if petConfig then
-		if incomeLabel then incomeLabel.Text = tostring(petConfig.standIncome) end
-		if costLabel then costLabel.Text = tostring(petConfig.cost) end
-	end
-
-	local targetSlot = nil
-	for i = 1, cachedBaseSlots do
-		if not cachedStandPets[tostring(i)] then
-			targetSlot = i
-			break
-		end
-	end
-
-	if targetSlot and petResult.uid then
-		Remotes.Pet_PlaceStand:FireServer(targetSlot, petResult.uid)
-	end
-
-	local spawnId = tostring(tick())
-	activePetSpawns[spawnId] = petModel
-
-	task.delay(2.5, function()
-		if not activePetSpawns[spawnId] then return end
-		activePetSpawns[spawnId] = nil
-		local part = findPrimaryPart(petModel)
-		if part then
-			StatefulObjectController.Tween(part, { Transparency = 1 }, 0.5)
-		end
-		task.wait(0.5)
-		petModel:Destroy()
-	end)
-end
-
-function PetController.RefreshStands(standPets)
-	if not assignedBaseId then return end
-
-	for slotKey, model in pairs(spawnedStandModels) do
-		model:Destroy()
-		spawnedStandModels[slotKey] = nil
-	end
-	for slotKey, billboard in pairs(incomeBillboards) do
+local function destroySlotUi(slotKey)
+	local billboard = incomeBillboards[slotKey]
+	if billboard then
 		billboard:Destroy()
 		incomeBillboards[slotKey] = nil
 	end
-	table.clear(displayTotal)
+
+	local conn = touchConnections[slotKey]
+	if conn then
+		conn:Disconnect()
+		touchConnections[slotKey] = nil
+	end
+
+	displayTotal[slotKey] = nil
+end
+
+function PetController.RefreshStands(standPets, previousStandPets)
+	if not assignedBaseId then return end
 
 	local baseModel = basesFolder:FindFirstChild("Base" .. tostring(assignedBaseId))
 	if not baseModel then
@@ -139,60 +60,59 @@ function PetController.RefreshStands(standPets)
 	local baseArea = baseModel:FindFirstChild("BaseArea")
 	if not baseArea then return end
 
+	local desiredSlots = {}
+
 	for slotIndex, petEntry in pairs(standPets) do
+		local slotKey = tostring(slotIndex)
+		desiredSlots[slotKey] = true
+
 		local standSlot = baseArea:FindFirstChild("StandSlot_" .. tostring(slotIndex))
 		if not standSlot then
 			continue
 		end
 
-		local template = petsFolder:FindFirstChild(petEntry.name)
-		if not template then
-			warn("[PetController] Pet model not found for stand:", petEntry.name)
-			continue
-		end
-
-		local petModel = template:Clone()
-		petModel.Parent = workspace
-		local petBody = findPrimaryPart(petModel) :: BasePart
-		local standMesh = standSlot:FindFirstChild("StandMesh")
-		if not standMesh then
-			continue
-		end
-
-		if petBody then
-			petBody.Position = standMesh.Position + Vector3.new(0, 3, 0)
-			petBody.Anchored = true
-			petBody.Rotation = standMesh.Rotation
-		end
-
-		spawnedStandModels[slotIndex] = petModel
-
 		local claimButton = standSlot:FindFirstChild("ClaimButton")
 		if not claimButton then continue end
 
-		local billboard = incomeBillboardTemplate:Clone()
-		billboard.Adornee = claimButton
-		billboard.Parent = claimButton
-		billboard.Frame.AmmountLabel.Text = "0"
-		incomeBillboards[tostring(slotIndex)] = billboard
+		local billboard = incomeBillboards[slotKey]
+		local currentEntry = previousStandPets and previousStandPets[slotKey] or nil
+		if not billboard then
+			billboard = incomeBillboardTemplate:Clone()
+			billboard.Adornee = claimButton
+			billboard.Parent = claimButton
+			billboard.Frame.AmmountLabel.Text = "0"
+			incomeBillboards[slotKey] = billboard
+			displayTotal[slotKey] = 0
+		elseif currentEntry and currentEntry.uid ~= petEntry.uid then
+			displayTotal[slotKey] = 0
+			billboard.Frame.AmmountLabel.Text = "0"
+		end
 
-		claimButton.Touched:Connect(function(hit)
-			local character = Players.LocalPlayer.Character
-			if not character then return end
-			if hit ~= character:FindFirstChild("HumanoidRootPart") then return end
+		if not touchConnections[slotKey] then
+			touchConnections[slotKey] = claimButton.Touched:Connect(function(hit)
+				local character = Players.LocalPlayer.Character
+				if not character then return end
+				if hit ~= character:FindFirstChild("HumanoidRootPart") then return end
 
-			task.spawn(function()
-				local earned = Remotes.Base_Collect:InvokeServer(slotIndex)
-				if earned > 0 then
-					local key = tostring(slotIndex)
-					displayTotal[key] = 0
-					local b = incomeBillboards[key]
-					if b then
-						b.Frame.AmmountLabel.Text = "0"
+				task.spawn(function()
+					local earned = Remotes.Base_Collect:InvokeServer(slotIndex)
+					if earned > 0 then
+						local key = tostring(slotIndex)
+						displayTotal[key] = 0
+						local b = incomeBillboards[key]
+						if b then
+							b.Frame.AmmountLabel.Text = "0"
+						end
 					end
-				end
+				end)
 			end)
-		end)
+		end
+	end
+
+	for slotKey in pairs(incomeBillboards) do
+		if not desiredSlots[slotKey] then
+			destroySlotUi(slotKey)
+		end
 	end
 end
 
@@ -208,13 +128,9 @@ function PetController.Init()
 		PetController.RefreshStands(cachedStandPets)
 
 		replica:OnSet({"StandPets"}, function(new)
+			local previousStandPets = cachedStandPets
 			cachedStandPets = new
-			for _, billboard in pairs(incomeBillboards) do
-				billboard:Destroy()
-			end
-			table.clear(incomeBillboards)
-			table.clear(displayTotal)
-			PetController.RefreshStands(new)
+			PetController.RefreshStands(new, previousStandPets)
 		end)
 
 		replica:OnSet({"BaseSlots"}, function(new)

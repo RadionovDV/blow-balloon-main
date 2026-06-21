@@ -103,7 +103,7 @@ function RebirthController.UpdatePets(replicaData)
 
 	syncPetSlots(tier)
 
-	local pets = replicaData.Pets or {}
+	local pets = replicaData.StandPets or {}
 
 	for _, petName in ipairs(tier.requiredPets) do
 		local petSlot = petSlotsFrame:FindFirstChild(petName)
@@ -124,7 +124,7 @@ function RebirthController.UpdateButton(replicaData)
 	local coins = replicaData.Coins or 0
 	local coinsMet = coins >= tier.cost
 
-	local pets = replicaData.Pets or {}
+	local pets = replicaData.StandPets or {}
 	local allPetsOwned = true
 	for _, petName in ipairs(tier.requiredPets) do
 		if not hasPet(pets, petName) then
@@ -155,8 +155,8 @@ function RebirthController.Init()
 			RebirthController.UpdateButton(replica.Data)
 		end)
 
-		replica:OnSet({"Pets"}, function(new)
-			replica.Data.Pets = new
+		replica:OnSet({"StandPets"}, function(new)
+			replica.Data.StandPets = new
 			RebirthController.UpdatePets(replica.Data)
 			RebirthController.UpdateButton(replica.Data)
 		end)

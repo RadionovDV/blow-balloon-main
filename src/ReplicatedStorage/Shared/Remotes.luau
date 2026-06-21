@@ -9,6 +9,7 @@ local REMOTE_EVENT_NAMES = {
 	"Balloon_Equip",
 	"Pet_PlaceStand",
 	"Pet_RemoveStand",
+	"Pet_SpawnWorld",
 	"Balloon_Result",
 	"Roulette_Show",
 	"Tutorial_Step",

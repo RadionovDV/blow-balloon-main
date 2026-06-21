@@ -11,7 +11,7 @@
 Methods:
 - `AddPet(player, petResult) -> entry`
 - `PlaceOnStand(player, petUid, slot) -> bool`
-- `RemoveFromStand(player, slot) -> bool`
+- `SellFromStand(player, slot) -> bool`
 - `SellPet(player, petUid) -> bool`
 - `UpgradeBase(player) -> bool`
 
@@ -23,9 +23,14 @@ Methods:
 - calls server actions for placement / collection
 
 ## Data
-- `Pets` = inventory
-- `StandPets` = placed pets
+- `StandPets` = all pets the player owns
+
+## Flow
+- New pets are auto-placed into the first free `StandPets` slot by `AddPet`
+- `PlaceOnStand` only reorders existing owned pets between stand slots
+- `SellFromStand` sells a pet from a stand slot
 
 ## Notes
 - Income is server-authoritative
 - Client only displays running visuals and sends interactions
+- World pets for roulette spawn are server-owned and visible to all players

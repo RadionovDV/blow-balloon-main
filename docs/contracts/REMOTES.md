@@ -36,7 +36,7 @@
 ###  Pet_PlaceStand
 - Type: RemoteEvent
 - Direction: Client → Server
-- Purpose: поставить питомца на стенд
+- Purpose: переставить питомца на другой слот стенда
 - Payload: { slotIndex: number, uid: string }
 
 ###  Pet_RemoveStand
@@ -44,6 +44,12 @@
 - Direction: Client → Server
 - Purpose: убрать питомца со стенда
 - Payload: { slotIndex: number }
+
+###  Pet_SpawnWorld
+- Type: RemoteEvent
+- Direction: Client → Server
+- Purpose: запросить серверный spawn питомца в мире
+- Payload: { uid: string }
 
 ###  Shop_BuyBalloon
 - Type: RemoteFunction

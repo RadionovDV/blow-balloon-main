@@ -80,12 +80,12 @@ ReplicatedStorage.Assets.UI - в этой папке хранятся все UI 
     - `TakeButton` (TextButton)
     - `ExitButton` (TextButton)
 
-### ShopGui (ScreenGui)
+### BalloonsGui (ScreenGui)
 - `Enabled = false`
-- `ShopFrame` (Frame) — центр экрана
+- `BalloonsFrame` (Frame) — центр экрана
   - `CloseButton` (TextButton) — крестик в углу
   - `TitleLabel` (TextLabel) — "Магазин шаров"
-  - `BalloonListFrame` (ScrollingFrame) — список шаров
+  - `BalloonsListFrame` (ScrollingFrame) — список шаров
     - `BalloonItemTemplate` (Frame, `Visible = false`) - BalloonItemTemplate из UI Store
       - `BalloonNameLabel` (TextLabel)
       - `BalloonPriceLabel` (TextLabel)

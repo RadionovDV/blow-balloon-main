@@ -10,7 +10,6 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local StatefulObjectController = require(script.Parent.StatefulObjectController)
 local AudioController = require(script.Parent.AudioController)
 local BalloonController = require(script.Parent.BalloonController)
-local PetController = require(script.Parent.PetController)
 
 local RouletteController = {}
 
@@ -164,7 +163,9 @@ function RouletteController.Init()
 		local result = lastResult
 		hideRoulette()
 		if result and result.type == "pet" then
-			PetController.SpawnAndRun(result)
+			Remotes.Pet_SpawnWorld:FireServer({ uid = result.uid })
+			task.wait(3)
+			Remotes.Pet_PlaceStand:FireServer(8, result.uid)
 		end
 		BalloonController.ReturnFromRoulette()
 	end)

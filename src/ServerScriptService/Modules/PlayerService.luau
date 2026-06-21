@@ -7,14 +7,16 @@ local ReplicaServer = require(ServerScriptService.Lib.ReplicaServer)
 local ProfileStore = require(ServerScriptService.Lib.ProfileStore)
 local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
 local BaseService = require(ServerScriptService.Modules.BaseService)
+local Signal = require(ReplicatedStorage.Lib.ReplicaShared.Signal)
 
 local PlayerService = {}
+
+PlayerService.PlayerDataReady = Signal.New()
 
 local ProfileTemplate = {
 	Coins         = 0,
 	Balloons      = { Default = 1 },
 	ActiveBalloon = "Default",
-	Pets          = {},
 	StandPets     = {},
 	Index         = {},
 	BaseLevel     = 1,
@@ -114,16 +116,11 @@ function PlayerService.Init()
 			Tags  = { UserId = player.UserId },
 			Data  = profile.Data,
 		})
-		
+
 		subscribeReplicaWhenReady(player, replica)
-		--replica:Subscribe(player)
-		--task.spawn(function()
-		--	task.wait(10)
-		--	replica:Subscribe(player)
-			
-		--end)
 
 		profiles[player] = profile
+		PlayerService.PlayerDataReady:Fire(player)
 		replicas[player] = replica
 
 		if player.Character then
