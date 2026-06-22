@@ -75,13 +75,12 @@ function RebirthService.PerformRebirth(player)
 	data.RebirthCount = data.RebirthCount + 1
 	data.BaseLuck = data.BaseLuck * tier.luckMultiplier
 	data.StandPets = {}
-	data.StandPets = {}
 	data.Coins = 0
 	data.Balloons = { Default = 1 }
 	data.ActiveBalloon = "Default"
 
-	if PlayerService.HasPass(player, "StarterPack") then
-		data.Coins = tier.starterPackCash
+	if PlayerService.HasPass(player, "RebirthMoney") then
+		data.Coins = tier.rebirthBonusCash
 	end
 
 	local replica = PlayerService.GetReplica(player)

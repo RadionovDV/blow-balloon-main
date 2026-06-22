@@ -11,9 +11,19 @@
 - [x] Pet world spawn moved to server for roulette flow
 - [x] Pet flow uses `StandPets` as canonical storage and `Pet_PlaceStand` only reorders existing pets
 - [x] Pet movement uses server-driven no-collision hover movement
+- [x] Monetization Stage 1 foundation:
+  * MonetizationEntitlements data model (GamePasses, Claims, Timed)
+  * PlayerService: last-known GamePass cache with MarketplaceService sync
+  * PlayerService: StarterPack join-time one-time claim flow
+  * PlayerService: Timed boost expiry filter on load
+  * RebirthService: RebirthMoney multi-use bonus (replaces StarterPack)
+  * RebirthConfig: starterPackCash → rebirthBonusCash
+  * DATA_SCHEMA.md: MonetizationEntitlements documented
+  * MONETIZATION.md: rules and architecture updated
 
 ## In Progress
-- [ ] Monetization staged planning
+- [ ] Balloon rarity link for roulette (deferred)
+- [ ] Monetization Stage 2: ProcessReceipt + DevProduct handling
 
 ## Frozen Contracts
 - [x] PlayerData schema v1

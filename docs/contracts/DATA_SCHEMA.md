@@ -4,6 +4,10 @@
 - Любое breaking change требует обновления schema version
 - Все server-critical данные живут в ProfileStore
 - Клиент не является источником истины
+- `MonetizationEntitlements` — persisted last-known cache, не source of truth
+- GamePass ownership: MarketplaceService — source of truth, MonetizationEntitlements.GamePasses — fallback при ошибке Marketplace
+- DevProduct ServerLuck не сохраняется в профиле (runtime-only)
+- Timed-бусты фильтруются на load: просроченные удаляются
 
 ## ProfileTemplate
 {
@@ -27,7 +31,20 @@
 
     TutorialStep = 0,
 
-    GamePasses = {},
+    MonetizationEntitlements = {
+        GamePasses = {
+            SkipRollAnimation = false,
+            WithoutBombs      = false,
+            RebirthMoney      = false,
+            StarterPack       = false,
+        },
+
+        Claims = {
+            StarterPack = false,
+        },
+
+        Timed = {},
+    },
 }
 
 ## Notes
@@ -35,5 +52,8 @@
  Index = список уникальных имён питомцев, которых игрок хотя бы раз получал
  Default Balloon = стартовый шар игрока и уже присутствует в инвентаре
  Balloon inventory хранится как словарь `{[balloonName]: count}`
- GamePasses = runtime cache, не обязательно сохранять
- Coins, Balloons, ActiveBalloon, StandPets, Index, BaseLevel, BaseSlots, RebirthCount, BaseLuck, LuckBonuses, TutorialStep реплицируются через Replica
+ Coins, Balloons, ActiveBalloon, StandPets, Index, BaseLevel, BaseSlots, RebirthCount, BaseLuck, LuckBonuses, TutorialStep, MonetizationEntitlements реплицируются через Replica
+ MonetizationEntitlements.GamePasses — last-known cache ownership GamePass. Записывается при успешном UserOwnsGamePassAsync (true/false). При ошибке не трогается.
+ MonetizationEntitlements.Claims — одноразовые claim-флаги (StarterPack). Обеспечивают idempotency.
+ MonetizationEntitlements.Timed — временные бусты, переживающие rejoin. Каждый элемент: { id: string, startsAt: number, expiresAt: number }. Просроченные удаляются при загрузке.
+ ServerLuck (DevProduct) не сохраняется в профиле — runtime-only, живёт в LuckService.

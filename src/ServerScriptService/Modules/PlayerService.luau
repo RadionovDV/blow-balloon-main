@@ -28,7 +28,18 @@ local ProfileTemplate = {
 		permanent = 0,
 	},
 	TutorialStep  = 0,
-	GamePasses    = {},
+	MonetizationEntitlements = {
+		GamePasses = {
+			SkipRollAnimation = false,
+			WithoutBombs      = false,
+			RebirthMoney      = false,
+			StarterPack       = false,
+		},
+		Claims = {
+			StarterPack = false,
+		},
+		Timed = {},
+	},
 }
 
 local profileStore
@@ -91,15 +102,21 @@ function PlayerService.Init()
 
 		profile:Reconcile()
 
-		local playerPasses = {}
+		local entitlements = profile.Data.MonetizationEntitlements
 		for passName, passId in pairs(GameConfig.GAMEPASS_IDS) do
 			local ok, owns = pcall(function()
 				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, passId)
 			end)
-			playerPasses[passName] = ok and owns or false
+			if ok then
+				entitlements.GamePasses[passName] = owns
+			end
 		end
-		profile.Data.GamePasses = playerPasses
-		passCache[player] = playerPasses
+		passCache[player] = entitlements.GamePasses
+
+		if entitlements.GamePasses.StarterPack and not entitlements.Claims.StarterPack then
+			profile.Data.Coins = profile.Data.Coins + GameConfig.STARTER_PACK_REWARD
+			entitlements.Claims.StarterPack = true
+		end
 
 		local now = os.time()
 		local tempLuck = profile.Data.LuckBonuses.temporary
@@ -110,6 +127,14 @@ function PlayerService.Init()
 			end
 		end
 		profile.Data.LuckBonuses.temporary = filtered
+
+		local activeTimed = {}
+		for _, boost in ipairs(entitlements.Timed) do
+			if boost.expiresAt > now then
+				table.insert(activeTimed, boost)
+			end
+		end
+		entitlements.Timed = activeTimed
 
 		local replica = ReplicaServer.New({
 			Token = PlayerDataToken,
