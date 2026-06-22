@@ -33,8 +33,7 @@ ReplicatedStorage
 │   │   └── GameConfig         (ModuleScript)
 │   ├── Util/
 │   │   ├── RarityUtil         (ModuleScript)
-│   │   ├── TableUtil          (ModuleScript)
-│   │   └── FormatNumber       (ModuleScript)
+│   │   └── TableUtil          (ModuleScript)
 │   └── Remotes                (ModuleScript)
 └── Assets/                    (вручную в Studio: модели, звуки, VFX)
 
@@ -55,12 +54,6 @@ ServerScriptService
     ├── BaseService            (ModuleScript)
     └── RebirthService         (ModuleScript)  ← POST-MVP
 
-### New (Stage 3)
-ServerScriptService
-└── Modules/
-    ├── StrayPetService         (ModuleScript)
-    └── StickerService          (ModuleScript)
-
 StarterPlayerScripts
 ├── Client.client              (LocalScript)
 └── Modules/
@@ -69,7 +62,6 @@ StarterPlayerScripts
     ├── PetController          (ModuleScript)
     ├── HudController          (ModuleScript)
     ├── ShopController         (ModuleScript)
-    ├── RobuxShopController    (ModuleScript)
     ├── RebirthController       (ModuleScript)
     ├── AudioController        (ModuleScript)
     ├── StatefulObjectController (ModuleScript)
@@ -129,8 +121,6 @@ StarterGui
 - `RouletteService` owns roulette outcome generation
 - `TutorialService` owns tutorial progression
 - `MonetizationService` owns GamePass / DevProduct flow
-- `StrayPetService` owns stray pet lifecycle (create, buy, claim, cleanup)
-- `StickerService` owns sticker equip / unequip validation
 
 ## 8. Runtime Flow
 1. `PlayerService` receives `Players.PlayerAdded`

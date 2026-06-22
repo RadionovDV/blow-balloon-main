@@ -30,6 +30,11 @@ Methods:
 - `PlaceOnStand` only reorders existing owned pets between stand slots
 - `SellFromStand` sells a pet from a stand slot
 
+## Stray Pets
+- failed pets can become world stray pets
+- stray pets are handled by `StrayPetService`
+- Robux buy flow and owner reclaim are separate from inventory flow
+
 ## Notes
 - Income is server-authoritative
 - Client only displays running visuals and sends interactions

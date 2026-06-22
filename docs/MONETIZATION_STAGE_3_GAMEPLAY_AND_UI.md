@@ -28,11 +28,12 @@
   - `RebirthService`
   - `PetService`
   - `EconomyService`
-- Реализовать stray pet purchase flow:
-  - `ProximityPrompt "Buy"`
-  - цена по rarity
-  - свой pet можно забрать бесплатно
-  - `Save Pets` запрещает другим игрокам выкупить чужого stray pet
+- Реализовать `FormatNumber` в `Shared/Util/FormatNumber` для цен и больших чисел.
+- Реализовать stray pet flow:
+  - `StrayPetService`
+  - Robux purchase price by rarity
+  - owner free reclaim
+  - `Save Pets` visual and purchase rules
 - Реализовать sticker equip flow:
   - только один стикер может быть активен одновременно
   - переключение `Equip / Unequip`
@@ -50,6 +51,7 @@
 - Не менять receipt routing из Stage 2.
 - Не предлагать новые продукты.
 - Не смешивать UI logic и server authoritative logic в одном слое.
+- Stray pet prices live in `MonetizationConfig`.
 
 ## Expected Thinking Order
 1. UI wiring.
@@ -64,4 +66,5 @@
 3. Gameplay integration plan
 4. Stray pet flow
 5. Sticker flow
+6. Number formatting plan
 ```
