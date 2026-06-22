@@ -26,10 +26,22 @@ GameConfig.GAMEPASS_IDS = {
 }
 
 GameConfig.DEVPRODUCT_IDS = {
-	ServerLuck      = 0,
-	BalloonWithPet  = 0,
-	AdoptPet        = 0,
+	ServerLuck = 0,
+	SavePets   = 0,
+	Money      = 0,
 }
+
+GameConfig.ENSURE_ROLL_OFFERS = {
+	-- { productId = <id>, duration = <seconds> }
+	-- 15 min, 30 min, 2 hours
+}
+
+GameConfig.STICKERS_PRODUCT_MAP = {
+	-- [productId] = "StickerName"
+}
+
+GameConfig.SAVE_PETS_DURATION = 86400
+GameConfig.MONEY_REWARD = 5000
 
 GameConfig.TUTORIAL_STEPS = {
 	INFLATE_FIRST   = 1,

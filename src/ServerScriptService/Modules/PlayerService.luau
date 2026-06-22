@@ -28,6 +28,7 @@ local ProfileTemplate = {
 		permanent = 0,
 	},
 	TutorialStep  = 0,
+	Stickers      = {},
 	MonetizationEntitlements = {
 		GamePasses = {
 			SkipRollAnimation = false,
@@ -179,6 +180,14 @@ end
 
 function PlayerService.GetReplica(player)
 	return replicas[player] or nil
+end
+
+function PlayerService.SyncPassCache(player)
+	local data = PlayerService.GetData(player)
+	if not data then
+		return
+	end
+	passCache[player] = data.MonetizationEntitlements.GamePasses
 end
 
 function PlayerService.HasPass(player, passName)

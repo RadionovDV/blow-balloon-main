@@ -31,6 +31,8 @@
 
     TutorialStep = 0,
 
+    Stickers = {},
+
     MonetizationEntitlements = {
         GamePasses = {
             SkipRollAnimation = false,
@@ -52,8 +54,9 @@
  Index = список уникальных имён питомцев, которых игрок хотя бы раз получал
  Default Balloon = стартовый шар игрока и уже присутствует в инвентаре
  Balloon inventory хранится как словарь `{[balloonName]: count}`
- Coins, Balloons, ActiveBalloon, StandPets, Index, BaseLevel, BaseSlots, RebirthCount, BaseLuck, LuckBonuses, TutorialStep, MonetizationEntitlements реплицируются через Replica
+ Coins, Balloons, ActiveBalloon, StandPets, Index, BaseLevel, BaseSlots, RebirthCount, BaseLuck, LuckBonuses, TutorialStep, Stickers, MonetizationEntitlements реплицируются через Replica
  MonetizationEntitlements.GamePasses — last-known cache ownership GamePass. Записывается при успешном UserOwnsGamePassAsync (true/false). При ошибке не трогается.
  MonetizationEntitlements.Claims — одноразовые claim-флаги (StarterPack). Обеспечивают idempotency.
  MonetizationEntitlements.Timed — временные бусты, переживающие rejoin. Каждый элемент: { id: string, startsAt: number, expiresAt: number }. Просроченные удаляются при загрузке.
  ServerLuck (DevProduct) не сохраняется в профиле — runtime-only, живёт в LuckService.
+ Stickers = список имён стикеров, полученных через DevProduct. Управляется только через ProcessReceipt.

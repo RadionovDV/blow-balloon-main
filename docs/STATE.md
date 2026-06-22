@@ -20,10 +20,22 @@
   * RebirthConfig: starterPackCash → rebirthBonusCash
   * DATA_SCHEMA.md: MonetizationEntitlements documented
   * MONETIZATION.md: rules and architecture updated
+- [x] Monetization Stage 2 ownership and receipts:
+  * MonetizationService created: ProcessReceipt + productHandlers
+  * PromptGamePassPurchaseFinished: re-check ownership after purchase
+  * productHandlers: ServerLuck, EnsureRoll, SavePets, Money, Stickers
+  * Idempotency: runtime grantedReceipts by PurchaseId
+  * EnsureRoll: timed persistent in MonetizationEntitlements.Timed
+  * ServerLuck: runtime-only, not in profile
+  * Stickers: persisted inventory field in ProfileTemplate
+  * Server.legacy.luau: MonetizationService Init/Start added
+  * GameConfig: DEVPRODUCT_IDS updated, new constants added
+  * DATA_SCHEMA.md: Stickers field documented
+  * MONETIZATION.md: Stage 2 rules and routing documented
 
 ## In Progress
 - [ ] Balloon rarity link for roulette (deferred)
-- [ ] Monetization Stage 2: ProcessReceipt + DevProduct handling
+- [ ] Monetization Stage 3: gameplay hooks + UI
 
 ## Frozen Contracts
 - [x] PlayerData schema v1
@@ -34,7 +46,6 @@
 
 ## Next Tasks
 - [ ] Balloon rarity link for roulette (deferred)
-- [ ] Monetization stage docs for DeepSeek
 
 ## Notes
 - Все изменения архитектуры фиксируются здесь после завершения задачи
