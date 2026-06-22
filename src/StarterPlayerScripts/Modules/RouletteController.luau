@@ -142,11 +142,15 @@ local function playSequence(sequence, finalResult)
 	end)
 end
 
-function RouletteController.Show(result)
+function RouletteController.Show(result, skipAnimation)
+	if skipAnimation then
+		RouletteGui.Enabled = true
+		showResult(result)
+		return
+	end
+
 	local sequence = buildSequence(result)
 	RouletteGui.Enabled = true
-	--BackgroundFrame.BackgroundTransparency = 1
-	--StatefulObjectController.Tween(BackgroundFrame, { BackgroundTransparency = 0.5 }, 0.3)
 	playSequence(sequence, result)
 end
 
@@ -154,7 +158,7 @@ function RouletteController.Init()
 	Remotes.Balloon_Result.OnClientEvent:Connect(function(res)
 		if res.type == "roulette" then
 			lastResult = res.result
-			RouletteController.Show(res.result)
+			RouletteController.Show(res.result, res.skipAnimation)
 		end
 	end)
 

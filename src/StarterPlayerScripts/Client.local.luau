@@ -13,6 +13,7 @@ local RouletteController       = require(PlayerScripts.Modules.RouletteControlle
 local PetController            = require(PlayerScripts.Modules.PetController)
 local RebirthController        = require(PlayerScripts.Modules.RebirthController)
 local IndexController          = require(PlayerScripts.Modules.IndexController)
+local RobuxShopController      = require(PlayerScripts.Modules.RobuxShopController)
 
 AudioController.Init()
 HudController.Init()
@@ -22,6 +23,7 @@ RouletteController.Init()
 PetController.Init()
 RebirthController.Init()
 IndexController.Init()
+RobuxShopController.Init()
 
 HudController.Start()
 ShopController.Start()
@@ -30,5 +32,6 @@ RouletteController.Start()
 PetController.Start()
 RebirthController.Start()
 IndexController.Start()
+RobuxShopController.Start()
 
 ReplicaClient.RequestData()

@@ -1,10 +1,10 @@
 local MonetizationConfig = {}
 
 MonetizationConfig.GAMEPASS_IDS = {
-	BalloonCosmetics = 0,
-	SkipAnimation    = 0,
-	StarterPack      = 0,
-	SavePet          = 0,
+	SkipRollAnimation = 0,
+	WithoutBombs      = 0,
+	RebirthMoney      = 0,
+	StarterPack       = 0,
 }
 
 MonetizationConfig.ENSURE_ROLL_OFFERS = {
@@ -35,6 +35,19 @@ MonetizationConfig.STARTER_PACK_BUNDLE = {
 		collectionName = "Base",
 	},
 	savePetsDuration = 900,
+}
+
+MonetizationConfig.STRAY_PRICES = {
+	Common    = 100,
+	Uncommon  = 250,
+	Rare      = 500,
+	Epic      = 1500,
+	Legendary = 5000,
+}
+
+MonetizationConfig.BOOST_ICONS = {
+	EnsureRoll = "rbxassetid://0",
+	SavePets   = "rbxassetid://0",
 }
 
 return MonetizationConfig

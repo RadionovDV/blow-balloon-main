@@ -5,6 +5,7 @@ local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
 local PetConfig = require(ReplicatedStorage.Shared.Config.PetConfig)
 local RarityUtil = require(ReplicatedStorage.Shared.Util.RarityUtil)
 local LuckService = require(ServerScriptService.Modules.LuckService)
+local PlayerService = require(ServerScriptService.Modules.PlayerService)
 
 local RouletteService = {}
 
@@ -15,7 +16,12 @@ function RouletteService.Start()
 end
 
 function RouletteService.Roll(player, maxRarity, inflatePercent)
-	if math.random() < GameConfig.BOMB_CHANCE then
+	local bombChance = GameConfig.BOMB_CHANCE
+	if PlayerService.HasPass(player, "WithoutBombs") then
+		bombChance = 0
+	end
+
+	if math.random() < bombChance then
 		return { type = "bomb" }
 	end
 

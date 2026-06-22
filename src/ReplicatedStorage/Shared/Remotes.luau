@@ -15,6 +15,8 @@ local REMOTE_EVENT_NAMES = {
 	"Tutorial_Step",
 	"Notification",
 	"Base_Assigned",
+	"StrayPet_Buy",
+	"StrayPet_Claim",
 }
 
 local REMOTE_FUNCTION_NAMES = {
@@ -22,6 +24,8 @@ local REMOTE_FUNCTION_NAMES = {
 	"Base_Collect",
 	"Rebirth_Perform",
 	"Roulette_ResolvePetChoice",
+	"Sticker_Equip",
+	"Sticker_Unequip",
 }
 
 if RunService:IsServer() then

@@ -30,6 +30,7 @@ local ProfileTemplate = {
 	},
 	TutorialStep  = 0,
 	Stickers      = {},
+	ActiveSticker = "",
 	MonetizationEntitlements = {
 		GamePasses = {
 			SkipRollAnimation = false,

@@ -32,6 +32,7 @@
     TutorialStep = 0,
 
     Stickers = {},
+    ActiveSticker = "",
 
     MonetizationEntitlements = {
         GamePasses = {
@@ -60,3 +61,4 @@
  MonetizationEntitlements.Timed — временные бусты, переживающие rejoin. Каждый элемент: { id: string, startsAt: number, expiresAt: number }. Просроченные удаляются при загрузке.
  ServerLuck (DevProduct) не сохраняется в профиле — runtime-only, живёт в LuckService.
  Stickers = список имён стикеров, полученных через DevProduct. Управляется только через ProcessReceipt.
+ ActiveSticker = имя активного стикера, или пустая строка если ничего не выбрано. Переживает rejoin через ProfileStore.

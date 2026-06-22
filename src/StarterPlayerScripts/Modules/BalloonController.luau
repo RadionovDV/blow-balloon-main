@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ReplicaClient = require(ReplicatedStorage.Lib.ReplicaClient)
 local BalloonConfig = require(ReplicatedStorage.Shared.Config.BalloonConfig)
 local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
+local StickerConfig = require(ReplicatedStorage.Shared.Config.StickerConfig)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local AudioController = require(script.Parent.AudioController)
 
@@ -25,6 +26,7 @@ local phase = Phase.Idle
 
 local cachedActiveBalloon = "Default"
 local ownedBalloons = {}
+local cachedActiveSticker = ""
 
 local inflateConnection = nil
 local inflateLoopId = nil
@@ -39,6 +41,25 @@ local balloonStation = location:WaitForChild("BalloonStation")
 local balloonModel = balloonStation:WaitForChild("BalloonModel")
 local balloonPart = balloonModel:WaitForChild("BalloonPart")
 local balloonBasePosition = balloonPart.Position
+
+local balloonDecal = balloonPart:FindFirstChildOfClass("Decal")
+
+local function applySticker(stickerName)
+	if not balloonDecal then
+		return
+	end
+	if stickerName and stickerName ~= "" then
+		for _, sticker in ipairs(StickerConfig.Stickers) do
+			if sticker.name == stickerName then
+				balloonDecal.ColorMapContent = sticker.icon or ""
+				return
+			end
+		end
+		balloonDecal.ColorMapContent = ""
+	else
+		balloonDecal.ColorMapContent = ""
+	end
+end
 
 local billboardGui = PlayerGui:WaitForChild("BillboardGui")
 local rewardLabel = billboardGui:WaitForChild("RewardLabel")
@@ -250,7 +271,9 @@ function BalloonController.Init()
 	ReplicaClient.OnNew("PlayerData", function(replica)
 		cachedActiveBalloon = replica.Data.ActiveBalloon
 		ownedBalloons = replica.Data.Balloons
-		
+		cachedActiveSticker = replica.Data.ActiveSticker or ""
+		applySticker(cachedActiveSticker)
+
 		replica:OnSet({"ActiveBalloon"}, function(new)
 			cachedActiveBalloon = new
 			local config = BalloonConfig[new]
@@ -259,7 +282,7 @@ function BalloonController.Init()
 			else
 				balloonPart.Color = GameConfig.RARITY_COLORS[config.maxRarity]
 			end
-			
+
 			if phase == Phase.Near then
 				refreshBalloonList()
 			end
@@ -270,6 +293,11 @@ function BalloonController.Init()
 			if phase == Phase.Near then
 				refreshBalloonList()
 			end
+		end)
+
+		replica:OnSet({"ActiveSticker"}, function(new)
+			cachedActiveSticker = new or ""
+			applySticker(cachedActiveSticker)
 		end)
 	end)
 

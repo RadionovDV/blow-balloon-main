@@ -88,3 +88,29 @@
 - Purpose: запросить rebirth
 - Payload: none
 - Return: `true/false`
+
+###  Sticker_Equip
+- Type: RemoteFunction
+- Direction: Client → Server
+- Purpose: надеть стикер
+- Payload: `{ stickerName: string }`
+- Return: `true/false`
+
+###  Sticker_Unequip
+- Type: RemoteFunction
+- Direction: Client → Server
+- Purpose: снять активный стикер
+- Payload: none
+- Return: `true/false`
+
+###  StrayPet_Buy
+- Type: RemoteEvent
+- Direction: Client → Server
+- Purpose: купить stray pet
+- Payload: `{ strayUid: string }`
+
+###  StrayPet_Claim
+- Type: RemoteEvent
+- Direction: Client → Server
+- Purpose: забрать своего stray pet бесплатно
+- Payload: `{ strayUid: string }`

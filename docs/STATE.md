@@ -37,7 +37,23 @@
 
 ## In Progress
 - [ ] Balloon rarity link for roulette (deferred)
-- [ ] Monetization Stage 3: gameplay hooks + UI
+
+## Completed (Stage 3)
+- [x] FormatNumber: Shared/Util/FormatNumber with Format() and FormatTime()
+- [x] RobuxShopController: open/close ShopGui, Buy/Purchased/Equip/Unequip states from Replica
+- [x] Temporary boost UI: HudGui.States renders active Timed boosts with live countdown
+- [x] BalloonService: EnsureRoll forces roulette when active
+- [x] BalloonService: Roulette leave creates stray pet via StrayPetService
+- [x] RouletteService: WithoutBombs gamepass disables bomb outcome
+- [x] StrayPetService: stray pet lifecycle with Save Pets transparency/prompt suppression
+- [x] StrayPetService: free owner reclaim, priced buy for others, cleanup timers
+- [x] StickerService: server-side Equip/Unequip validation via RemoteFunctions
+- [x] Sticker flow: single active sticker, Decal.ColorMapContent apply on balloon
+- [x] Save Pets stray-pet behavior: Transparency 0.5, buy prompt disabled for non-owners
+- [x] MonetizationConfig: STRAY_PRICES and BOOST_ICONS tables
+- [x] PlayerService ProfileTemplate: ActiveSticker field (persistent)
+- [x] Client boot: +RobuxShopController
+- [x] Server boot: +StrayPetService, +StickerService
 
 ## Frozen Contracts
 - [x] PlayerData schema v1

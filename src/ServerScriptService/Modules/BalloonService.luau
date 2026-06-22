@@ -11,6 +11,7 @@ local RouletteService = require(ServerScriptService.Modules.RouletteService)
 local PetService = require(ServerScriptService.Modules.PetService)
 local PendingPetService = require(ServerScriptService.Modules.PendingPetService)
 local PetMovementService = require(ServerScriptService.Modules.PetMovementService)
+local StrayPetService = require(ServerScriptService.Modules.StrayPetService)
 
 local BalloonService = {}
 
@@ -95,8 +96,26 @@ function BalloonService.Start()
 				PendingPetService.SetPending(player, result)
 				result.icon = PetConfig.GetPetByName(result.name).icon or ""
 			end
-			Remotes.Balloon_Result:FireClient(player, { type = "roulette", result = result, reward = reward })
+			local skipAnimation = PlayerService.HasPass(player, "SkipRollAnimation")
+			Remotes.Balloon_Result:FireClient(player, { type = "roulette", result = result, reward = reward, skipAnimation = skipAnimation })
 		else
+			-- Check if EnsureRoll is active — if so, force roulette
+			local data = PlayerService.GetData(player)
+			if data then
+				local now = os.time()
+				for _, boost in ipairs(data.MonetizationEntitlements.Timed) do
+					if boost.id == "EnsureRoll" and boost.expiresAt > now then
+						local result = RouletteService.Roll(player, config.maxRarity, 1)
+						result.icon = ""
+						if result.type == "pet" then
+							PendingPetService.SetPending(player, result)
+							result.icon = PetConfig.GetPetByName(result.name).icon or ""
+						end
+						Remotes.Balloon_Result:FireClient(player, { type = "roulette", result = result, reward = reward })
+						return
+					end
+				end
+			end
 			Remotes.Balloon_Result:FireClient(player, { type = "coins_only", reward = reward })
 		end
 	end)
@@ -145,8 +164,7 @@ function BalloonService.Start()
 		end
 
 		if payload.choice == "leave" then
-			local petModel = PetMovementService.SpawnAtSpawnPets(pendingResult.name)
-			PetMovementService.WanderAndDespawn(petModel)
+			StrayPetService.CreateStray(player, pendingResult)
 			return { success = true }
 		end
 
