@@ -16,8 +16,22 @@ local petsQuit = poi:WaitForChild("PetsQuit")
 
 local petsAssets = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("Pets")
 
+local wallsModel = location:WaitForChild("Walls")
+
+local raycastParams = RaycastParams.new()
+raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+do
+	local instances = {}
+	for _, child in ipairs(wallsModel:GetDescendants()) do
+		if child:IsA("BasePart") or child:IsA("MeshPart") then
+			table.insert(instances, child)
+		end
+	end
+	raycastParams.FilterDescendantsInstances = instances
+end
+
 local APPROACH_DISTANCE = 5
-local WANDER_DURATION = 60
+local WANDER_DURATION = 5
 local BASE_APPROACH_SPEED = 12
 local WANDER_SPEED = 8
 local QUIT_SPEED = 14
@@ -37,7 +51,7 @@ end
 local function getGroundPosition(originPos, lastValidPos)
 	local rayOrigin = originPos + Vector3.new(0, 10, 0)
 	local rayDir = Vector3.new(0, -25, 0)
-	local rayResult = workspace:Raycast(rayOrigin, rayDir)
+	local rayResult = workspace:Raycast(rayOrigin, rayDir, raycastParams)
 	if rayResult and rayResult.Position then
 		return Vector3.new(originPos.X, rayResult.Position.Y + HOVER_HEIGHT, originPos.Z)
 	end

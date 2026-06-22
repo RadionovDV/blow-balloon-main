@@ -281,7 +281,7 @@ function PetService.CommitPetToStand(player, petResult, slotIndex)
 	IndexService.AddToIndex(player, petResult.name)
 
 	PlayerService.GetReplica(player):Set({"StandPets"}, data.StandPets)
-
+	print("CreateModel")
 	local model = createStandModel(player, entry, slotIndex)
 
 	return entry, model

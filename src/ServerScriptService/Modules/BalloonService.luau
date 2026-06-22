@@ -31,20 +31,20 @@ function BalloonService.Start()
 		end
 
 		local activeBalloon = data.ActiveBalloon
-		
+
 		if not data.Balloons[activeBalloon] or data.Balloons[activeBalloon] <= 0 then
 			Remotes.Balloon_Result:FireClient(player, { type = "no_balloon" })
 			return
 		end
-		
-		
+
+
 		inflating[player] = { startTime = tick(), balloonName = activeBalloon, popped = false }
-		
+
 		if activeBalloon ~= "Default" then
 			data.Balloons[activeBalloon] -= 1
 		end
 		PlayerService.SetData(player, {"Balloons"}, data.Balloons)
-		
+
 		task.spawn(function()
 			while inflating[player] and not inflating[player].popped do
 				task.wait(0.5)

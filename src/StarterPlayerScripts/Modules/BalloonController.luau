@@ -187,7 +187,7 @@ local function switchPhase(target)
 			inflateConnection = nil
 		end
 	end
-
+	
 	if target ~= Phase.Viewing then
 		if readyDelay then coroutine.resume(readyDelay); readyDelay = nil end
 	end
