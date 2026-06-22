@@ -13,35 +13,9 @@ GameConfig.BASE_COUNT = 4 -- default = 8
 
 GameConfig.REBIRTH_COIN_REQUIREMENT = 100000
 GameConfig.REBIRTH_LUCK_MULTIPLIER = 0.5
-GameConfig.STARTER_PACK_REWARD = 500
 
 GameConfig.SERVER_BOOST_AMOUNT = 5
 GameConfig.SERVER_BOOST_DURATION = 1800
-
-GameConfig.GAMEPASS_IDS = {
-	BalloonCosmetics = 0,
-	SkipAnimation    = 0,
-	StarterPack      = 0,
-	SavePet          = 0,
-}
-
-GameConfig.DEVPRODUCT_IDS = {
-	ServerLuck = 0,
-	SavePets   = 0,
-	Money      = 0,
-}
-
-GameConfig.ENSURE_ROLL_OFFERS = {
-	-- { productId = <id>, duration = <seconds> }
-	-- 15 min, 30 min, 2 hours
-}
-
-GameConfig.STICKERS_PRODUCT_MAP = {
-	-- [productId] = "StickerName"
-}
-
-GameConfig.SAVE_PETS_DURATION = 86400
-GameConfig.MONEY_REWARD = 5000
 
 GameConfig.TUTORIAL_STEPS = {
 	INFLATE_FIRST   = 1,

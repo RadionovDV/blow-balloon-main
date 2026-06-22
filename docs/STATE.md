@@ -22,16 +22,18 @@
   * MONETIZATION.md: rules and architecture updated
 - [x] Monetization Stage 2 ownership and receipts:
   * MonetizationService created: ProcessReceipt + productHandlers
-  * PromptGamePassPurchaseFinished: re-check ownership after purchase
-  * productHandlers: ServerLuck, EnsureRoll, SavePets, Money, Stickers
+  * PromptGamePassPurchaseFinished: re-check ownership (only ok+owns updates cache)
+  * productHandlers: 4 offer tables (ENSURE_ROLL, SERVER_LUCK, SAVE_PETS, MONEY) + Stickers
   * Idempotency: runtime grantedReceipts by PurchaseId
-  * EnsureRoll: timed persistent in MonetizationEntitlements.Timed
   * ServerLuck: runtime-only, not in profile
   * Stickers: persisted inventory field in ProfileTemplate
   * Server.legacy.luau: MonetizationService Init/Start added
-  * GameConfig: DEVPRODUCT_IDS updated, new constants added
+  * MonetizationConfig: GAMEPASS_IDS + 4 offer tables + STARTER_PACK_BUNDLE + REBIRTH_MONEY_AMOUNT
+  * StickerConfig: created with Stickers[] array (productId inside each sticker)
+  * GameConfig: cleaned — monetization/sticker fields removed
+  * PlayerService: StarterPack bundle (coins, balloons, pet, Index dedup, SavePets timed)
   * DATA_SCHEMA.md: Stickers field documented
-  * MONETIZATION.md: Stage 2 rules and routing documented
+  * MONETIZATION.md: Stage 2 rules, configs, routing, StarterPack bundle documented
 
 ## In Progress
 - [ ] Balloon rarity link for roulette (deferred)

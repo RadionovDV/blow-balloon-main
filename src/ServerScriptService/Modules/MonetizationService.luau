@@ -3,10 +3,13 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
+local MonetizationConfig = require(ReplicatedStorage.Shared.Config.MonetizationConfig)
+local StickerConfig = require(ReplicatedStorage.Shared.Config.StickerConfig)
 local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
 local PlayerService = require(ServerScriptService.Modules.PlayerService)
 local EconomyService = require(ServerScriptService.Modules.EconomyService)
 local LuckService = require(ServerScriptService.Modules.LuckService)
+local PetService = require(ServerScriptService.Modules.PetService)
 
 local MonetizationService = {}
 
@@ -14,7 +17,7 @@ local grantedReceipts = {}
 local productHandlers = {}
 
 function MonetizationService.Init()
-	for _, offer in ipairs(GameConfig.ENSURE_ROLL_OFFERS) do
+	for _, offer in ipairs(MonetizationConfig.ENSURE_ROLL_OFFERS) do
 		local productId = offer.productId
 		local duration = offer.duration
 		productHandlers[productId] = function(player)
@@ -40,45 +43,61 @@ function MonetizationService.Init()
 		end
 	end
 
-	productHandlers[GameConfig.DEVPRODUCT_IDS.ServerLuck] = function()
-		LuckService.AddServerBoost(GameConfig.SERVER_BOOST_AMOUNT, GameConfig.SERVER_BOOST_DURATION)
-		return Enum.ProductPurchaseDecision.PurchaseGranted
+	for _, offer in ipairs(MonetizationConfig.SERVER_LUCK_OFFERS) do
+		local productId = offer.productId
+		local duration = offer.duration
+		productHandlers[productId] = function()
+			LuckService.AddServerBoost(GameConfig.SERVER_BOOST_AMOUNT, duration)
+			return Enum.ProductPurchaseDecision.PurchaseGranted
+		end
 	end
 
-	productHandlers[GameConfig.DEVPRODUCT_IDS.SavePets] = function(player)
-		local data = PlayerService.GetData(player)
-		if not data then
-			return Enum.ProductPurchaseDecision.NotProcessedYet
-		end
-
-		local entitlements = data.MonetizationEntitlements
-		local now = os.time()
-		for _, boost in ipairs(entitlements.Timed) do
-			if boost.id == "SavePets" and boost.expiresAt > now then
-				return Enum.ProductPurchaseDecision.PurchaseGranted
-			end
-		end
-
-		table.insert(entitlements.Timed, {
-			id = "SavePets",
-			startsAt = now,
-			expiresAt = now + GameConfig.SAVE_PETS_DURATION,
-		})
-		return Enum.ProductPurchaseDecision.PurchaseGranted
-	end
-
-	productHandlers[GameConfig.DEVPRODUCT_IDS.Money] = function(player)
-		local data = PlayerService.GetData(player)
-		if not data then
-			return Enum.ProductPurchaseDecision.NotProcessedYet
-		end
-
-		EconomyService.AddCoins(player, GameConfig.MONEY_REWARD)
-		return Enum.ProductPurchaseDecision.PurchaseGranted
-	end
-
-	for productId, stickerName in pairs(GameConfig.STICKERS_PRODUCT_MAP) do
+	for _, offer in ipairs(MonetizationConfig.SAVE_PETS_OFFERS) do
+		local productId = offer.productId
+		local duration = offer.duration
 		productHandlers[productId] = function(player)
+			local data = PlayerService.GetData(player)
+			if not data then
+				return Enum.ProductPurchaseDecision.NotProcessedYet
+			end
+
+			local entitlements = data.MonetizationEntitlements
+			local now = os.time()
+			for _, boost in ipairs(entitlements.Timed) do
+				if boost.id == "SavePets" and boost.expiresAt > now then
+					return Enum.ProductPurchaseDecision.PurchaseGranted
+				end
+			end
+
+			table.insert(entitlements.Timed, {
+				id = "SavePets",
+				startsAt = now,
+				expiresAt = now + duration,
+			})
+			return Enum.ProductPurchaseDecision.PurchaseGranted
+		end
+	end
+
+	for _, offer in ipairs(MonetizationConfig.MONEY_OFFERS) do
+		local productId = offer.productId
+		local amount = offer.amount
+		productHandlers[productId] = function(player)
+			local data = PlayerService.GetData(player)
+			if not data then
+				return Enum.ProductPurchaseDecision.NotProcessedYet
+			end
+
+			EconomyService.AddCoins(player, amount)
+			return Enum.ProductPurchaseDecision.PurchaseGranted
+		end
+	end
+
+	for _, sticker in ipairs(StickerConfig.Stickers) do
+		if not sticker.productId then
+			continue
+		end
+		local stickerName = sticker.name
+		productHandlers[sticker.productId] = function(player)
 			local data = PlayerService.GetData(player)
 			if not data then
 				return Enum.ProductPurchaseDecision.NotProcessedYet
@@ -131,7 +150,7 @@ function MonetizationService.Start()
 		end
 
 		local passName = nil
-		for name, id in pairs(GameConfig.GAMEPASS_IDS) do
+		for name, id in pairs(MonetizationConfig.GAMEPASS_IDS) do
 			if id == gamePassId then
 				passName = name
 				break
@@ -150,9 +169,7 @@ function MonetizationService.Start()
 		local ok, owns = pcall(function()
 			return MarketplaceService:UserOwnsGamePassAsync(player.UserId, gamePassId)
 		end)
-		if ok then
-			entitlements.GamePasses[passName] = owns
-		else
+		if ok and owns then
 			entitlements.GamePasses[passName] = true
 		end
 
@@ -164,7 +181,27 @@ function MonetizationService.Start()
 		end
 
 		if passName == "StarterPack" and entitlements.GamePasses.StarterPack and not entitlements.Claims.StarterPack then
-			EconomyService.AddCoins(player, GameConfig.STARTER_PACK_REWARD)
+			local bundle = MonetizationConfig.STARTER_PACK_BUNDLE
+
+			EconomyService.AddCoins(player, bundle.coins)
+
+			data.Balloons["Blue"] = (data.Balloons["Blue"] or 0) + bundle.balloons.Blue
+			data.Balloons["Yellow"] = (data.Balloons["Yellow"] or 0) + bundle.balloons.Yellow
+			if replica then
+				replica:Set({"Balloons"}, data.Balloons)
+			end
+
+			PetService.AddPet(player, bundle.pet)
+
+			table.insert(entitlements.Timed, {
+				id = "SavePets",
+				startsAt = os.time(),
+				expiresAt = os.time() + bundle.savePetsDuration,
+			})
+			if replica then
+				replica:Set({"MonetizationEntitlements", "Timed"}, entitlements.Timed)
+			end
+
 			entitlements.Claims.StarterPack = true
 			if replica then
 				replica:Set({"MonetizationEntitlements", "Claims"}, entitlements.Claims)

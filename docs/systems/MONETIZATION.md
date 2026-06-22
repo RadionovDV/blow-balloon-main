@@ -29,9 +29,21 @@
 - grantedReceipts — runtime-таблица { [PurchaseId] = true }, не persistent
 - Stickers = {} — persisted inventory, пишется через ProcessReceipt
 
+## Configuration
+- MonetizationConfig — GAMEPASS_IDS, ENSURE_ROLL_OFFERS, SERVER_LUCK_OFFERS, SAVE_PETS_OFFERS, MONEY_OFFERS, STARTER_PACK_BUNDLE, REBIRTH_MONEY_AMOUNT
+- StickerConfig — Stickers[] с name, rarity, icon, productId (source of truth для sticker→productId связи)
+- GameConfig — только core game constants (SERVER_BOOST_AMOUNT/DURATION остаются)
+
 ## Product Routing (ProcessReceipt)
-- ServerLuck → LuckService.AddServerBoost (runtime-only)
-- EnsureRoll → MonetizationEntitlements.Timed (id + startsAt/expiresAt)
-- SavePets → MonetizationEntitlements.Timed (id + startsAt/expiresAt)
-- Money → EconomyService.AddCoins
-- Stickers → data.Stickers (persisted inventory)
+- **EnsureRoll** → each offer.productId → MonetizationEntitlements.Timed (id="EnsureRoll", startsAt/expiresAt)
+- **ServerLuck** → each offer.productId → LuckService.AddServerBoost(amount, offer.duration) (runtime-only)
+- **SavePets** → each offer.productId → MonetizationEntitlements.Timed (id="SavePets", startsAt/expiresAt)
+- **Money** → each offer.productId → EconomyService.AddCoins(offer.amount)
+- **Stickers** → each StickerConfig.Stickers[].productId → data.Stickers (persisted inventory)
+
+## StarterPack Bundle
+- 200000 coins
+- 25 Blue balloons + 3 Yellow balloons
+- Pet "Forgot" (Uncommon, Base collection)
+- SavePets timed boost (15 min)
+- Handled on PlayerAdded (pre-Replica direct mutation) and on PromptGamePassPurchaseFinished (via existing services + Replica:Set)

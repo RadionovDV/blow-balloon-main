@@ -6,6 +6,7 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicaServer = require(ServerScriptService.Lib.ReplicaServer)
 local ProfileStore = require(ServerScriptService.Lib.ProfileStore)
 local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
+local MonetizationConfig = require(ReplicatedStorage.Shared.Config.MonetizationConfig)
 local BaseService = require(ServerScriptService.Modules.BaseService)
 local Signal = require(ReplicatedStorage.Lib.ReplicaShared.Signal)
 
@@ -104,7 +105,7 @@ function PlayerService.Init()
 		profile:Reconcile()
 
 		local entitlements = profile.Data.MonetizationEntitlements
-		for passName, passId in pairs(GameConfig.GAMEPASS_IDS) do
+		for passName, passId in pairs(MonetizationConfig.GAMEPASS_IDS) do
 			local ok, owns = pcall(function()
 				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, passId)
 			end)
@@ -115,7 +116,43 @@ function PlayerService.Init()
 		passCache[player] = entitlements.GamePasses
 
 		if entitlements.GamePasses.StarterPack and not entitlements.Claims.StarterPack then
-			profile.Data.Coins = profile.Data.Coins + GameConfig.STARTER_PACK_REWARD
+			local bundle = MonetizationConfig.STARTER_PACK_BUNDLE
+
+			profile.Data.Coins = profile.Data.Coins + bundle.coins
+
+			profile.Data.Balloons["Blue"] = (profile.Data.Balloons["Blue"] or 0) + bundle.balloons.Blue
+			profile.Data.Balloons["Yellow"] = (profile.Data.Balloons["Yellow"] or 0) + bundle.balloons.Yellow
+
+			local uid = tostring(math.floor(tick() * 1000)) .. "_" .. tostring(math.random(1000, 9999))
+			for i = 1, profile.Data.BaseSlots do
+				if profile.Data.StandPets[tostring(i)] == nil then
+					profile.Data.StandPets[tostring(i)] = {
+						uid = uid,
+						name = bundle.pet.name,
+						rarity = bundle.pet.rarity,
+						collectionName = bundle.pet.collectionName,
+					}
+					break
+				end
+			end
+
+			local alreadyIndexed = false
+			for _, name in ipairs(profile.Data.Index) do
+				if name == bundle.pet.name then
+					alreadyIndexed = true
+					break
+				end
+			end
+			if not alreadyIndexed then
+				table.insert(profile.Data.Index, bundle.pet.name)
+			end
+
+			table.insert(entitlements.Timed, {
+				id = "SavePets",
+				startsAt = os.time(),
+				expiresAt = os.time() + bundle.savePetsDuration,
+			})
+
 			entitlements.Claims.StarterPack = true
 		end
 
