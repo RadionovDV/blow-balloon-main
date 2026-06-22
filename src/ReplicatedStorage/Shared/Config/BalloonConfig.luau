@@ -50,4 +50,38 @@ BalloonConfig.Blue = {
 	},
 }
 
+BalloonConfig.Purple = {
+	displayName = "Purple",
+	maxRarity   = "Epic",
+	price       = 100,
+	baseReward  = 15,
+	maxReward   = 900,
+	layoutOrder = 3,
+	popCurve = {
+		{ time = 0,  chance = 0.12 },
+		{ time = 5,  chance = 0.18 },
+		{ time = 12, chance = 0.28 },
+		{ time = 25, chance = 0.45 },
+		{ time = 45, chance = 0.75 },
+		{ time = 60, chance = 1.00 },
+	},
+}
+
+BalloonConfig.Yellow = {
+	displayName = "Yellow",
+	maxRarity   = "Legendary",
+	price       = 100,
+	baseReward  = 15,
+	maxReward   = 900,
+	layoutOrder = 3,
+	popCurve = {
+		{ time = 0,  chance = 0.12 },
+		{ time = 5,  chance = 0.18 },
+		{ time = 12, chance = 0.28 },
+		{ time = 25, chance = 0.45 },
+		{ time = 45, chance = 0.75 },
+		{ time = 60, chance = 1.00 },
+	},
+}
+
 return BalloonConfig

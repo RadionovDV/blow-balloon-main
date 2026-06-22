@@ -1,0 +1,389 @@
+## UI Store (ReplicatedStorage)
+ReplicatedStorage.Assets.UI - в этой папке хранятся все UI элементы для динамического названения
+
+### HudGui (ScreenGui)
+- `ResetOnSpawn = false`
+- `IgnoreGuiInset = true` (опционально)
+- Содержимое:
+  - `CoinsLabel` (TextLabel) — позиция вверху слева
+  - `LuckLabel` (TextLabel) — позиция внизу слева
+  - `RightSide` (Frame)
+    - `ShopButton` (TextButton)
+    - `IndexButton` (TextButton)
+  - `Stats` (Frame)
+    - `Luck` (Frame)
+      - `IconLabel` (ImageLabel)
+        - `MultLabel` (TextLabel)
+  - `RebirthFrame` (Frame)
+    - `BottomLine` (Frame)
+      - `PetSlots` (Frame)
+        - `PetSlot` (Frame) - UI Store
+      - `RebirthButton` (ImageButton)
+        - `Lock` (Frame)
+        - `ImageLabel` (ImageLabel)
+    - `CoinAmount` (Frame)
+      - `Filler`  (Frame)
+      - `AmountLabel` (TextLabel)
+
+### IndexGui (ScreenGui)
+- `ResetOnSpawn = false`
+- Содержание:
+- `IndexFrame` (Frame)
+- `UIListLayout` — для вертикального расположения элементов
+  - `ProgressBar` (Frame)
+    - `Filler` (Frame)
+    - `AmountLabel` (TextLabel)
+  - `ScrollingFrame` (ScrollingFrame)
+  - `UIListLayout`
+    - `IndexItem` (Frame) - UI Store
+    - `IconLabel` (ImageLabel)
+      - `NameLabel` (TextLabel)
+
+### NotificationGui (ScreenGui)
+- `ResetOnSpawn = false`
+- `NotificationFrame` (Frame, `Visible = false`)
+  - Позиция: центр сверху
+  - `NotificationText` (TextLabel)
+
+### ShopGui (ScreenGui)
+- `ResetOnSpawn = true`
+- `Enabled = true`
+- Содержимое:
+  - `ShopFrame` (Frame)
+    - `CloseButton` (ImageButton)
+    - `ShopContent` (Frame)
+      - `ScrollingFrame` (ScrollingFrame)
+        - `UIListLayout`
+        - `StarterPack` (Frame)
+          - `Title` (TextLabel)
+          - `Content` (Frame)
+            - `BuyButton` (ImageButton)
+              - `ImageLabel`
+              - `UIListLayout`
+              - `TextLabel`
+            - `ProductList` (Frame)
+              - `UIListLayout`
+              - `ProductItem` (Frame)
+                - `NameLabel` (TextLabel)
+                - `IconLabel` (ImageLabel)
+                  - `Frame`
+                - `Background` (Frame)
+                  - `UIGradient`
+                - `CountLabel` (TextLabel)
+              - `ProductItem` (Frame)
+                - `NameLabel` (TextLabel)
+                - `IconLabel` (ImageLabel)
+                - `Background` (Frame)
+                  - `UIGradient`
+              - `ProductItem` (Frame)
+                - `NameLabel` (TextLabel)
+                - `IconLabel` (ImageLabel)
+                - `CountLabel` (TextLabel)
+                - `Background` (Frame)
+                  - `UIGradient`
+              - `ProductItem` (Frame)
+                - `NameLabel` (TextLabel)
+                - `IconLabel` (ImageLabel)
+                - `Background` (Frame)
+                  - `UIGradient`
+                - `CountLabel` (TextLabel)
+              - `ProductItem` (Frame)
+                - `NameLabel` (TextLabel)
+                - `IconLabel` (ImageLabel)
+                  - `Frame`
+                - `Background` (Frame)
+                  - `UIGradient`
+                - `CountLabel` (TextLabel)
+            - `OldPrice` (Frame)
+              - `Frame`
+                - `ImageLabel`
+                - `UIListLayout`
+                - `TextLabel`
+              - `Cut` (Frame)
+          - `Ving` (ImageLabel)
+          - `Purchased` (Frame, `Visible = false`)
+            - `Title` (TextLabel)
+        - `EnsureRoll` (Frame)
+          - `TextLabel` (TextLabel)
+          - `Offers` (Frame)
+            - `UIListLayout`
+            - `Offer1` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+                  - `Frame`
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+            - `Offer2` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+                  - `Frame`
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+            - `Offer3` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+                  - `Frame`
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+          - `UIListLayout`
+        - `ServerLuck` (Frame)
+          - `TextLabel` (TextLabel)
+          - `Offers` (Frame)
+            - `UIListLayout`
+            - `Offer3` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+            - `Offer1` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+            - `Offer2` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+          - `UIListLayout`
+        - `GamePass` (Frame)
+          - `SkipRollAnimation` (Frame)
+            - `Content` (Frame)
+              - `BuyButton` (ImageButton)
+                - `ImageLabel`
+                - `UIListLayout`
+                - `TextLabel`
+              - `IconLabel` (ImageLabel)
+                - `ImageLabel`
+            - `Ving` (ImageLabel)
+            - `Title` (TextLabel)
+            - `Description` (TextLabel)
+            - `Purchased` (Frame, `Visible = false`)
+              - `Title` (TextLabel)
+          - `TextLabel` (TextLabel)
+          - `UIListLayout`
+          - `WithoutBombs` (Frame)
+            - `Content` (Frame)
+              - `BuyButton` (ImageButton)
+                - `ImageLabel`
+                - `UIListLayout`
+                - `TextLabel`
+              - `IconLabel` (ImageLabel)
+            - `Ving` (ImageLabel)
+            - `Title` (TextLabel)
+            - `Description` (TextLabel)
+            - `Purchased` (Frame, `Visible = false`)
+              - `Title` (TextLabel)
+          - `RebirthMoney` (Frame)
+            - `Content` (Frame)
+              - `BuyButton` (ImageButton)
+                - `ImageLabel`
+                - `UIListLayout`
+                - `TextLabel`
+              - `IconLabel` (ImageLabel)
+                - `ImageLabel`
+            - `Ving` (ImageLabel)
+            - `Title` (TextLabel)
+            - `Description` (TextLabel)
+            - `Purchased` (Frame, `Visible = false`)
+              - `Title` (TextLabel)
+        - `SavePets` (Frame)
+          - `TextLabel` (TextLabel)
+          - `Offers` (Frame)
+            - `UIListLayout`
+            - `Offer1` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+            - `Offer2` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+            - `Offer3` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+          - `UIListLayout`
+        - `Stickers` (Frame)
+          - `TextLabel` (TextLabel)
+          - `Offers` (Frame)
+            - `UIListLayout`
+            - `Offer1` (Frame)
+              - `Content` (Frame)
+                - `EuipButton` (TextButton, `Visible = false`)
+                - `IconLabel` (ImageLabel)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `ProductItem` (Frame)
+                  - `IconLabel` (ImageLabel)
+                  - `Background` (Frame)
+                    - `UIGradient`
+                  - `NameLabel` (TextLabel)
+              - `Ving` (ImageLabel)
+            - `Offer2` (Frame)
+              - `Content` (Frame)
+                - `EuipButton` (TextButton, `Visible = false`)
+                - `IconLabel` (ImageLabel)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `ProductItem` (Frame)
+                  - `IconLabel` (ImageLabel)
+                  - `Background` (Frame)
+                    - `UIGradient`
+                  - `NameLabel` (TextLabel)
+              - `Ving` (ImageLabel)
+            - `Offer3` (Frame)
+              - `Content` (Frame)
+                - `EuipButton` (TextButton, `Visible = false`)
+                - `IconLabel` (ImageLabel)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `ProductItem` (Frame)
+                  - `IconLabel` (ImageLabel)
+                  - `Background` (Frame)
+                    - `UIGradient`
+                  - `NameLabel` (TextLabel)
+              - `Ving` (ImageLabel)
+          - `UIListLayout`
+        - `Money` (Frame)
+          - `TextLabel` (TextLabel)
+          - `Offers` (Frame)
+            - `UIListLayout`
+            - `Offer1` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+            - `Offer2` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+            - `Offer3` (Frame)
+              - `Title` (TextLabel)
+              - `Content` (Frame)
+                - `BuyButton` (ImageButton)
+                  - `ImageLabel`
+                  - `UIListLayout`
+                  - `TextLabel`
+                - `IconLabel` (ImageLabel)
+              - `Ving` (ImageLabel)
+              - `Description` (TextLabel)
+          - `UIListLayout`
+  - `TitleLabel` (TextLabel) — `"SHOP"`
+
+### BalloonHudGui (ScreenGui)
+- `ResetOnSpawn = true`
+- `Enabled = true`
+- Содержимое:
+  - `ExitButton` (TextButton, `Visible = false`)
+  - `LuckBarFrame` (Frame)
+    - `LuckLabel` (TextLabel)
+  - `BalloonListFrame` (Frame)
+    - `ScrollingFrame` (ScrollingFrame)
+      - `UIListLayout`
+  - `StartButtonZone` (Frame)
+    - `StartFrame` (Frame)
+      - `StartButton` (ImageButton)
+        - `ImageLabel`
+    - `SkipFrame` (Frame)
+      - `SkipButton` (ImageButton)
+        - `TextLabel`
+
+### RouletteGui (ScreenGui)
+- `Enabled = false`
+- `BackgroundFrame` (Frame) — полноэкранный, `BackgroundTransparency = 1`
+- `RouletteFrame` (Frame) — центр экрана
+  - `ItemDisplay` (Frame) — главный дисплей элемента
+    - `PetNameLabel` (TextLabel)
+    - `RarityLabel` (TextLabel)
+    - `ItemIcon` (ImageLabel) — иконка
+  - `ProgressBar` (Frame) — справа
+    - `ProgressFill` (Frame) — уменьшается до 0
+  - `ResultFrame` (Frame, `Visible = false`)
+    - `ResultNameLabel` (TextLabel)
+    - `ResultRarityLabel` (TextLabel)
+    - `TakeButton` (TextButton)
+    - `ExitButton` (TextButton)
+
+### BalloonsGui (ScreenGui)
+- `Enabled = false`
+- `BalloonsFrame` (Frame) — центр экрана
+  - `CloseButton` (TextButton) — крестик в углу
+  - `TitleLabel` (TextLabel) — "Магазин шаров"
+  - `BalloonsListFrame` (ScrollingFrame) — список шаров
+    - `BalloonItemTemplate` (Frame, `Visible = false`) - BalloonItemTemplate из UI Store
+      - `BalloonNameLabel` (TextLabel)
+      - `BalloonPriceLabel` (TextLabel)
+      - `BalloonRarityLabel` (TextLabel)
+      - `BuyButton` (TextButton)
+
+### TutorialGui (ScreenGui)
+- `ResetOnSpawn = false`
+- `TutorialFrame` (Frame, `Visible = false`)
+  - `TutorialText` (TextLabel)
+  - `TutorialArrow` (ImageLabel, `Visible = false`)
