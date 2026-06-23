@@ -2,20 +2,21 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
-local RunService = game:GetService("RunService")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 local MonetizationConfig = require(ReplicatedStorage.Shared.Config.MonetizationConfig)
 local PetConfig = require(ReplicatedStorage.Shared.Config.PetConfig)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PlayerService = require(ServerScriptService.Modules.PlayerService)
 local PetService = require(ServerScriptService.Modules.PetService)
-local EconomyService = require(ServerScriptService.Modules.EconomyService)
 local PetMovementService = require(ServerScriptService.Modules.PetMovementService)
 
 local StrayPetService = {}
 
 local strayPets = {}
 local nextUid = 0
+local pendingPurchases = {}
+local rng = Random.new()
 
 local location = Workspace:WaitForChild("Location")
 local balloonStation = location:WaitForChild("BalloonStation")
@@ -104,9 +105,9 @@ function StrayPetService.CreateStray(player, petResult)
 	if spawnArea then
 		local half = spawnArea.Size / 2
 		local randPos = spawnArea.Position + Vector3.new(
-			math.random() * spawnArea.Size.X - half.X,
+			rng:NextNumber() * spawnArea.Size.X - half.X,
 			0,
-			math.random() * spawnArea.Size.Z - half.Z
+			rng:NextNumber() * spawnArea.Size.Z - half.Z
 		)
 		local primaryPart = findPrimaryPart(petModel)
 		if primaryPart then
@@ -131,42 +132,32 @@ function StrayPetService.CreateStray(player, petResult)
 	local primaryPart = findPrimaryPart(petModel)
 	local attachTo = primaryPart or petModel
 
-	local buyPrompt = Instance.new("ProximityPrompt")
-	buyPrompt.Name = "Buy"
-	buyPrompt.Parent = attachTo
-	buyPrompt.MaxActivationDistance = 8
-	buyPrompt.RequiresLineOfSight = false
-	buyPrompt.ActionText = "Buy"
-	buyPrompt.ObjectText = petResult.name .. " ($" .. tostring(MonetizationConfig.STRAY_PRICES[petResult.rarity] or 100) .. ")"
+	attachTo:SetAttribute("OwnerUserId", player.UserId)
+	attachTo:SetAttribute("StrayPrice", MonetizationConfig.STRAY_PRICES[petResult.rarity].priceRobux)
+	attachTo:SetAttribute("SavePetsActive", savePets)
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Parent = attachTo
+	prompt.MaxActivationDistance = 8
+	prompt.RequiresLineOfSight = false
+	prompt.ActionText = "Interact"
+	prompt.ObjectText = petResult.name
 
 	if savePets then
-		buyPrompt.Enabled = false
+		prompt.Enabled = false
 	end
 
-	buyPrompt.Triggered:Connect(function(triggeredPlayer)
-		if buyPrompt.Enabled == false then
-			return
-		end
-		if triggeredPlayer ~= player then
+	prompt.Triggered:Connect(function(triggeredPlayer)
+		if prompt.Enabled == false then return end
+		if triggeredPlayer == player then
+			StrayPetService.ClaimStray(uid, triggeredPlayer)
+		else
 			StrayPetService.BuyStray(uid, triggeredPlayer)
 		end
 	end)
-	stray.buyPrompt = buyPrompt
+	stray.prompt = prompt
 
-	local claimPrompt = Instance.new("ProximityPrompt")
-	claimPrompt.Name = "Claim"
-	claimPrompt.Parent = attachTo
-	claimPrompt.MaxActivationDistance = 8
-	claimPrompt.RequiresLineOfSight = false
-	claimPrompt.ActionText = "Claim"
-	claimPrompt.ObjectText = "Claim " .. petResult.name
-
-	claimPrompt.Triggered:Connect(function(triggeredPlayer)
-		if triggeredPlayer == player then
-			StrayPetService.ClaimStray(uid, triggeredPlayer)
-		end
-	end)
-	stray.claimPrompt = claimPrompt
+	stray.wanderConnection = PetMovementService.WanderStray(petModel)
 
 	local cleanupDelay = 120
 	task.delay(cleanupDelay, function()
@@ -196,35 +187,64 @@ function StrayPetService.BuyStray(uid, player)
 		return false
 	end
 
-	local price = MonetizationConfig.STRAY_PRICES[stray.rarity]
-	if not price then
+	if pendingPurchases[player.UserId] then
 		return false
 	end
 
-	if not EconomyService.SpendCoins(player, price) then
-		Remotes.Notification:FireClient(player, { text = "Not enough coins!" })
+	local priceInfo = MonetizationConfig.STRAY_PRICES[stray.rarity]
+	if not priceInfo or not priceInfo.productId then
 		return false
 	end
 
-	local data = PlayerService.GetData(player)
-	if not data then
+	pendingPurchases[player.UserId] = {
+		uid = uid,
+		productId = priceInfo.productId,
+	}
+
+	MarketplaceService:PromptProductPurchase(player, priceInfo.productId)
+	return true
+end
+
+function StrayPetService.GrantStrayPurchase(player, productId)
+	local pending = pendingPurchases[player.UserId]
+	if not pending or pending.productId ~= productId then
+		return false
+	end
+
+	pendingPurchases[player.UserId] = nil
+
+	local stray = strayPets[pending.uid]
+	if not stray then
+		Remotes.Notification:FireClient(player, { text = "This pet is no longer available" })
 		return false
 	end
 
 	local petConfig = PetConfig.GetPetByName(stray.petName)
 	if petConfig then
-		PetService.AddPet(player, {
+		local entry = PetService.AddPet(player, {
 			name = stray.petName,
 			rarity = stray.rarity,
 			collectionName = stray.collectionName or "Base",
 		})
-		Remotes.Notification:FireClient(player, { text = "You bought " .. stray.petName .. "!" })
+		if entry then
+			local data = PlayerService.GetData(player)
+			if data then
+				for slotKey, pet in pairs(data.StandPets) do
+					if pet.uid == entry.uid then
+						PetService.CreateStandModel(player, entry, tonumber(slotKey))
+						break
+					end
+				end
+			end
+			Remotes.Notification:FireClient(player, { text = "You bought " .. stray.petName .. "!" })
+		else
+			Remotes.Notification:FireClient(player, { text = "No free stand slots!" })
+		end
 	else
-		EconomyService.AddCoins(player, price)
-		Remotes.Notification:FireClient(player, { text = "Pet not found, coins refunded" })
+		Remotes.Notification:FireClient(player, { text = "Pet not found" })
 	end
 
-	removeStray(uid)
+	removeStray(pending.uid)
 	return true
 end
 
@@ -246,18 +266,42 @@ function StrayPetService.ClaimStray(uid, player)
 
 	local petConfig = PetConfig.GetPetByName(stray.petName)
 	if petConfig then
-		PetService.AddPet(player, {
+		local entry = PetService.AddPet(player, {
 			name = stray.petName,
 			rarity = stray.rarity,
 			collectionName = stray.collectionName or "Base",
 		})
-		Remotes.Notification:FireClient(player, { text = stray.petName .. " returned to your base!" })
+		if entry then
+			for slotKey, pet in pairs(data.StandPets) do
+				if pet.uid == entry.uid then
+					PetService.CreateStandModel(player, entry, tonumber(slotKey))
+					break
+				end
+			end
+			Remotes.Notification:FireClient(player, { text = stray.petName .. " returned to your base!" })
+		else
+			Remotes.Notification:FireClient(player, { text = "No free stand slots!" })
+		end
 	else
 		Remotes.Notification:FireClient(player, { text = "Pet not found" })
 	end
 
 	removeStray(uid)
 	return true
+end
+
+function StrayPetService.ApplySavePetsTransparency(player)
+	for _, stray in pairs(strayPets) do
+		if stray.ownerPlayer == player then
+			stray.savePets = true
+			setTransparency(stray.model, 0.5)
+			if stray.prompt then
+				stray.prompt.Enabled = false
+			end
+			local attach = findPrimaryPart(stray.model) or stray.model
+			attach:SetAttribute("SavePetsActive", true)
+		end
+	end
 end
 
 function StrayPetService.Init()
@@ -278,12 +322,26 @@ end
 
 function StrayPetService.Start()
 	Players.PlayerRemoving:Connect(function(player)
+		pendingPurchases[player.UserId] = nil
 		for uid, stray in pairs(strayPets) do
 			if stray.ownerPlayer == player then
 				removeStray(uid)
 			end
 		end
 	end)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		local data = PlayerService.GetData(player)
+		if data then
+			local now = os.time()
+			for _, boost in ipairs(data.MonetizationEntitlements.Timed) do
+				if boost.id == "SavePets" and boost.expiresAt > now then
+					StrayPetService.ApplySavePetsTransparency(player)
+					break
+				end
+			end
+		end
+	end
 end
 
 return StrayPetService

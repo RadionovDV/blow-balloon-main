@@ -37,6 +37,8 @@ local WANDER_SPEED = 8
 local QUIT_SPEED = 14
 local HOVER_HEIGHT = 2
 
+local rng = Random.new()
+
 local function disableCollision(model)
 	for _, desc in ipairs(model:GetDescendants()) do
 		if desc:IsA("BasePart") then
@@ -61,9 +63,9 @@ end
 local function randomPointInPart(part)
 	local half = part.Size / 2
 	return Vector3.new(
-		part.Position.X + math.random() * part.Size.X - half.X,
+		part.Position.X + rng:NextNumber() * part.Size.X - half.X,
 		part.Position.Y + 1,
-		part.Position.Z + math.random() * part.Size.Z - half.Z
+		part.Position.Z + rng:NextNumber() * part.Size.Z - half.Z
 	)
 end
 
@@ -214,6 +216,40 @@ function PetMovementService.WanderAndDespawn(petModel)
 			petModel:PivotTo(CFrame.lookAt(groundPos, petsQuit.Position))
 		end
 	end)
+end
+
+function PetMovementService.WanderStray(petModel)
+	if not petModel then
+		return nil
+	end
+
+	local lastValidPos = petModel:GetPivot().Position
+	local currentTarget = randomPointInPart(petsMovement)
+	local connection
+
+	connection = RunService.Heartbeat:Connect(function(dt)
+		if not petModel or not petModel.Parent then
+			connection:Disconnect()
+			return
+		end
+
+		local currentPos = petModel:GetPivot().Position
+		local direction = currentTarget - currentPos
+		local distance = direction.Magnitude
+
+		if distance < APPROACH_DISTANCE then
+			currentTarget = randomPointInPart(petsMovement)
+			return
+		end
+
+		local stepPos = currentPos + direction.Unit * math.min(WANDER_SPEED * dt, distance)
+		local groundPos = getGroundPosition(stepPos, lastValidPos)
+		lastValidPos = groundPos
+
+		petModel:PivotTo(CFrame.lookAt(groundPos, currentTarget))
+	end)
+
+	return connection
 end
 
 return PetMovementService

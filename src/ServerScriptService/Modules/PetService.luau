@@ -122,6 +122,10 @@ local function createStandModel(player, petEntry, slotIndex)
 	return petModel
 end
 
+function PetService.CreateStandModel(player, petEntry, slotIndex)
+	return createStandModel(player, petEntry, slotIndex)
+end
+
 function PetService.Start()
 	Remotes.Pet_PlaceStand.OnServerEvent:Connect(function(player, slotIndex, petUid)
 		PetService.PlaceOnStand(player, petUid, slotIndex)

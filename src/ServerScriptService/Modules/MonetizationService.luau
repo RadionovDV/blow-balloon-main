@@ -10,6 +10,7 @@ local PlayerService = require(ServerScriptService.Modules.PlayerService)
 local EconomyService = require(ServerScriptService.Modules.EconomyService)
 local LuckService = require(ServerScriptService.Modules.LuckService)
 local PetService = require(ServerScriptService.Modules.PetService)
+local StrayPetService = require(ServerScriptService.Modules.StrayPetService)
 
 local MonetizationService = {}
 
@@ -74,6 +75,7 @@ function MonetizationService.Init()
 				startsAt = now,
 				expiresAt = now + duration,
 			})
+			StrayPetService.ApplySavePetsTransparency(player)
 			return Enum.ProductPurchaseDecision.PurchaseGranted
 		end
 	end
@@ -116,6 +118,16 @@ function MonetizationService.Init()
 				replica:Set({"Stickers"}, data.Stickers)
 			end
 			return Enum.ProductPurchaseDecision.PurchaseGranted
+		end
+	end
+
+	for rarity, info in pairs(MonetizationConfig.STRAY_PRICES) do
+		local productId = info.productId
+		productHandlers[productId] = function(player)
+			if StrayPetService.GrantStrayPurchase(player, productId) then
+				return Enum.ProductPurchaseDecision.PurchaseGranted
+			end
+			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 	end
 
@@ -198,6 +210,7 @@ function MonetizationService.Start()
 				startsAt = os.time(),
 				expiresAt = os.time() + bundle.savePetsDuration,
 			})
+			StrayPetService.ApplySavePetsTransparency(player)
 			if replica then
 				replica:Set({"MonetizationEntitlements", "Timed"}, entitlements.Timed)
 			end

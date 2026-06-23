@@ -46,11 +46,11 @@ MonetizationConfig.STARTER_PACK_BUNDLE = {
 }
 
 MonetizationConfig.STRAY_PRICES = {
-	Common    = 100,
-	Uncommon  = 250,
-	Rare      = 500,
-	Epic      = 1500,
-	Legendary = 5000,
+	Common    = { productId = 3606096623, priceRobux = 100 },
+	Uncommon  = { productId = 3606096658, priceRobux = 250 },
+	Rare      = { productId = 3606096772, priceRobux = 500 },
+	Epic      = { productId = 3606096845, priceRobux = 1500 },
+	Legendary = { productId = 3606096880, priceRobux = 5000 },
 }
 
 MonetizationConfig.BOOST_ICONS = {
